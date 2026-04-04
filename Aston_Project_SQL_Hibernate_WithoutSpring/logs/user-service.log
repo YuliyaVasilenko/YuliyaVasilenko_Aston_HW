@@ -1630,3 +1630,4 @@ org.hibernate.HibernateException: Duplicate row was found and `ASSERT` was speci
 2026-03-29 11:30:51 [main] INFO  hibernate.HibernateUtil - Hibernate SessionFactory created successfully
 2026-03-29 11:38:00 [main] INFO  console.ConsoleUI - Завершение работы приложения
 2026-03-29 11:40:37 [main] INFO  console.ConsoleUI - Завершение работы приложения
+2026-03-29 15:35:22 [main] INFO  console.ConsoleUI - Завершение работы приложения
