@@ -8,19 +8,16 @@
       <jdbc-url>jdbc:postgresql://localhost:5432/postgres</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
-<<<<<<< HEAD
+
     <data-source source="LOCAL" name="hibernate.cfg.xml/Hibernate" uuid="a5ad6a5d-654c-451a-8795-a16a33c7fe18">
       <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
       <imported>true</imported>
-      <remarks>Hibernate
 
-C:/Users/July/IdeaProjects/YuliyaVasilenko_Aston_HW/src/main/resources/hibernate.cfg.xml</remarks>
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>
       <jdbc-url>jdbc:postgresql://localhost:5432/postgres</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
-=======
->>>>>>> 4b49b1a7721894bb2ec020bf84ae5db146389dd2
+
   </component>
 </project>
