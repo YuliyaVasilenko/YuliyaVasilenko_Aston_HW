@@ -1,7 +1,7 @@
 package menu;
 
 import input.CheckWriting;
-import models.User;
+import models.UserEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import view.Viewer;
@@ -16,6 +16,9 @@ import java.util.List;
  */
 public class MenuManager {
     private static final Logger logger = LoggerFactory.getLogger(MenuManager.class);
+    private MainManager mainManager = new MainManager();
+    private CheckWriting checkWriting = new CheckWriting();
+    private Viewer viewer = new Viewer();
 
     /**
      * @ Method Name: proceed
@@ -25,14 +28,13 @@ public class MenuManager {
     public void proceed() {
         logger.info("The application has started");
         Menu menu;
-        MainManager manager = new MainManager();
         do {
-            Viewer.saySelectOperation();
-            Viewer.showOperations();
+            viewer.saySelectOperation();
+            viewer.showOperations();
             menu = selectOperation();
             logger.info("The operation was selected: {}", menu.name());
             if (menu != Menu.EXIT) {
-                switchOperation(menu, manager);
+                switchOperation(menu, mainManager);
                 logger.info("The operation was proceed: {}", menu.name());
             }
         } while (menu != Menu.EXIT);
@@ -42,29 +44,29 @@ public class MenuManager {
     /**
      * @ Method Name: switchOperation
      * @ Description: the method that describes which procedure is called for each 'button'
-     * @ param -> return: [menu.Menu, menu.MainManager] [menu, manager] -> void
+     * @ param -> return: [menu.Menu, menu.MainManager] [menu, mainManager] -> void
      */
     public void switchOperation(Menu menu, MainManager manager) {
         switch (menu) {
             case CREATE -> {
-                User user = manager.create();
-                Viewer.showResult(user, menu.getDescription());
+                UserEntity userEntity = manager.create();
+                viewer.showResult(userEntity, menu.getDescription());
             }
             case READ -> {
-                User user = manager.find();
-                Viewer.showResult(user, menu.getDescription());
+                UserEntity userEntity = manager.find();
+                viewer.showResult(userEntity, menu.getDescription());
             }
             case READ_ALL -> {
-                List<User> users = manager.findAll();
-                Viewer.showResult(users);
+                List<UserEntity> userEntities = manager.findAll();
+                viewer.showResult(userEntities);
             }
             case UPDATE -> {
-                User user = manager.update();
-                Viewer.showResult(user, menu.getDescription());
+                UserEntity userEntity = manager.update();
+                viewer.showResult(userEntity, menu.getDescription());
             }
             case DELETE -> {
                 boolean isDeleted = manager.delete();
-                Viewer.showResult(isDeleted, menu.getDescription());
+                viewer.showResult(isDeleted, menu.getDescription());
             }
         }
     }
@@ -76,7 +78,7 @@ public class MenuManager {
      * @ param -> return: [] [] -> menu.Menu
      */
     public Menu selectOperation() {
-        int ordinal = new CheckWriting().checkNumber("operation",
+        int ordinal = checkWriting.checkNumber("operation",
                 1, Menu.values().length) - 1;
         if (ordinal == -1) ordinal = Menu.EXIT.ordinal();
         return Menu.getOrdinal(ordinal);

@@ -1,12 +1,13 @@
 package dao;
 
-import models.User;
+import models.UserEntity;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utils.HibernateUtil;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -15,27 +16,26 @@ import java.util.List;
  * Date 26-03-2026
  * Description: this class describes the interaction between a user's entity and a database
  */
-public class UserDAO implements EntityDAO<User> {
+public class UserDAO implements EntityDAO<UserEntity> {
     private static final Logger logger = LoggerFactory.getLogger(UserDAO.class);
 
     /**
      * @ Method Name: findById
      * @ Description: searching for the user in the database by the unique field 'id'
-     * @ param -> return: [int] [id] -> models.User
+     * @ param -> return: [int] [id] -> models.UserEntity
      */
     @Override
-    public User findById(int id) {
+    public UserEntity findById(int id) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            if (id < 0) {
+            if (id <= 0) {
                 logger.warn("Attempt to find user with ID <= 0, ID: {}", id);
-            }
-            else {
-                User user = session.get(User.class, id);
-                if (user != null) {
-                    logger.info("User found with ID: {}", id);
-                    return user;
+            } else {
+                UserEntity userEntity = session.get(UserEntity.class, id);
+                if (userEntity != null) {
+                    logger.info("UserEntity found with ID: {}", id);
+                    return userEntity;
                 } else {
-                    logger.warn("User not found with ID: {}", id);
+                    logger.warn("UserEntity not found with ID: {}", id);
                 }
             }
         } catch (Exception e) {
@@ -47,62 +47,63 @@ public class UserDAO implements EntityDAO<User> {
     /**
      * @ Method Name: findAll
      * @ Description: searching for all users in the database
-     * @ param -> return: [] [] -> java.util.List<models.User>
+     * @ param -> return: [] [] -> java.util.List<models.UserEntity>
      */
     @Override
-    public List<User> findAll() {
+    public List<UserEntity> findAll() {
+        List<UserEntity> userEntities = new ArrayList<>();
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            List<User> users = session.createQuery("FROM User", User.class).getResultList();
-            logger.info("Users found: {} users", users.size());
-            return users;
+            userEntities = session.createQuery("FROM UserEntity", UserEntity.class).getResultList();
+            logger.info("Users found: {} userEntities", userEntities.size());
+            return userEntities;
         } catch (Exception e) {
-            logger.error("Error finding users: {}", e.getMessage());
+            logger.error("Error finding userEntities: {}", e.getMessage());
         }
-        return null;
+        return userEntities;
     }
 
     /**
      * @ Method Name: create
-     * @ Description: creating a new user in the database
-     * @ param -> return: [models.User] [user] -> models.User
+     * @ Description: creating a new userEntity in the database
+     * @ param -> return: [models.UserEntity] [userEntity] -> models.UserEntity
      */
     @Override
-    public User create(User user) {
+    public UserEntity create(UserEntity userEntity) {
         Transaction transaction = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             transaction = session.beginTransaction();
-            session.persist(user);
+            session.persist(userEntity);
             transaction.commit();
-            logger.info("User saved successfully with ID: {}", user.getId());
-            return user;
+            logger.info("UserEntity saved successfully with ID: {}", userEntity.getId());
+            return userEntity;
         } catch (Exception e) {
             if (transaction != null) {
                 transaction.rollback();
             }
-            logger.error("Error saving user: {}", e.getMessage());
+            logger.error("Error saving userEntity: {}", e.getMessage());
         }
         return null;
     }
 
     /**
      * @ Method Name: update
-     * @ Description: updating the user data in the database
-     * @ param -> return: [models.User] [user] -> models.User
+     * @ Description: updating the userEntity data in the database
+     * @ param -> return: [models.UserEntity] [userEntity] -> models.UserEntity
      */
     @Override
-    public User update(User user) {
+    public UserEntity update(UserEntity userEntity) {
         Transaction transaction = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             transaction = session.beginTransaction();
-            session.merge(user);
+            session.merge(userEntity);
             transaction.commit();
-            logger.info("User updated successfully with ID: {}", user.getId());
-            return user;
+            logger.info("UserEntity updated successfully with ID: {}", userEntity.getId());
+            return userEntity;
         } catch (Exception e) {
             if (transaction != null) {
                 transaction.rollback();
             }
-            logger.error("Error updating user: {}", e.getMessage());
+            logger.error("Error updating userEntity: {}", e.getMessage());
         }
         return null;
     }
@@ -110,32 +111,31 @@ public class UserDAO implements EntityDAO<User> {
     /**
      * @ Method Name: delete
      * @ Description: deleting the user from the database
-     * @ param -> return: [models.User] [user] -> boolean
+     * @ param -> return: [models.UserEntity] [user] -> boolean
      */
     @Override
     public boolean delete(int id) {
-        User user = null;
+        UserEntity userEntity = null;
         if (id <= 0) {
-            logger.warn("Attempt to delete user with ID <= 0, ID: {}", id);
+            logger.warn("Attempt to delete userEntity with ID <= 0, ID: {}", id);
         } else {
             Transaction transaction = null;
             try (Session session = HibernateUtil.getSessionFactory().openSession()) {
                 transaction = session.beginTransaction();
-                user = session.get(User.class, id);
-                if (user == null) {
-                    logger.warn("Attempt to delete non-existent user");
-                }
-                else {
-                    session.remove(user);
+                userEntity = session.get(UserEntity.class, id);
+                if (userEntity == null) {
+                    logger.warn("Attempt to delete non-existent userEntity");
+                } else {
+                    session.remove(userEntity);
                     transaction.commit();
-                    logger.info("User deleted successfully with ID: {}", user.getId());
+                    logger.info("UserEntity deleted successfully with ID: {}", userEntity.getId());
                     return true;
                 }
             } catch (Exception e) {
-                if (transaction != null && user != null) {
+                if (transaction != null && userEntity != null) {
                     transaction.rollback();
                 }
-                logger.error("Error deleting user: {}", e.getMessage());
+                logger.error("Error deleting userEntity: {}", e.getMessage());
             }
         }
         return false;

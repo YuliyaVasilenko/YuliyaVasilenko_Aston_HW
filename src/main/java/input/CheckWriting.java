@@ -1,5 +1,6 @@
 package input;
 
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,25 +15,26 @@ import java.util.regex.Pattern;
  * Description: this class is responsible for getting data from the console and verifying it
  */
 public class CheckWriting implements Checker {
-    private static final Scanner scanner = new Scanner(System.in);
-    private static final int exit = 0;
+    @Getter
+    private static final int EXIT = 0;
     private static final Logger logger = LoggerFactory.getLogger(CheckWriting.class);
+    private static Scanner scanner = new Scanner(System.in);
 
     /**
      * @ Method Name: checkNumber
      * @ Description: checking if the string is the correct number (consisting of digits only)
      * and whether it is in the range from the min value to max value;
      * 'wordName' is the name of the variable being defined
-     * @ param -> return: [java.lang.String, int, int] [wordName, numberOfMinOperation, numberOfMaxOperation] -> int
+     * @ param -> return: [java.lang.String, int, int] [wordName, minValue, maxValue] -> int
      */
     @Override
-    public int checkNumber(String wordName, int numberOfMinOperation, int numberOfMaxOperation) {
-        System.out.println("Please enter the " + wordName + " or press " + exit + " to exit to the menu");
+    public int checkNumber(String wordName, int minValue, int maxValue) {
+        System.out.println("Please enter the " + wordName + " or press " + EXIT + " to EXIT to the menu");
         String wordUser = scanner.nextLine();
-        while (!wordUser.equals(String.valueOf(exit))) {
+        while (!wordUser.equals(String.valueOf(EXIT))) {
             try {
                 int numberUser = Integer.parseInt(wordUser);
-                if (numberUser < numberOfMinOperation || numberUser > numberOfMaxOperation) {
+                if (numberUser < minValue || numberUser > maxValue) {
                     throw new IllegalArgumentException();
                 }
                 logger.info("The number was written correct: {}", numberUser);
@@ -41,17 +43,17 @@ public class CheckWriting implements Checker {
                 logger.warn("The number was written incorrect, the number should be made up of digits only: {}", wordName);
                 System.out.println("This is not a number, the number should be made up of digits only. "
                         + "Please write a correct number in range from "
-                        + numberOfMinOperation + " to " + numberOfMaxOperation + ". To exit press " + exit);
+                        + minValue + " to " + maxValue + ". To EXIT press " + EXIT);
                 wordUser = scanner.nextLine();
             } catch (IllegalArgumentException e) {
-                logger.warn("The number was written incorrect, the number not in range required: {}", wordName);
+                logger.warn("The number was written incorrect, the number is not in the range required");
                 System.out.println("Please write a correct number in range from "
-                        + numberOfMinOperation + " to " + numberOfMaxOperation + ". To exit press " + exit);
+                        + minValue + " to " + maxValue + ". To EXIT press " + EXIT);
                 wordUser = scanner.nextLine();
             }
         }
-        logger.warn("the exit to the menu was selected instead writing the number");
-        return exit;
+        logger.warn("The EXIT to the menu was selected instead writing the number");
+        return EXIT;
     }
 
     /**
@@ -62,17 +64,17 @@ public class CheckWriting implements Checker {
      */
     @Override
     public String checkWord(String wordName) {
-        System.out.println("Please enter the " + wordName + " or press " + exit + " to exit to the menu");
+        System.out.println("Please enter the " + wordName + " or press " + EXIT + " to EXIT to the menu");
         String wordUser = scanner.nextLine();
-        while (wordUser.isBlank() && !wordUser.equals(String.valueOf(exit))) {
+        while (wordUser == null || wordUser.isBlank() && !wordUser.equals(String.valueOf(EXIT))) {
             logger.warn("The word was written incorrect, the word should not be empty: {}", wordName);
             System.out.println("Incorrect " + wordName + ", "
                     + wordName + " should not be empty, please write the " + wordName
-                    + " again or press " + exit + " to exit to the menu");
+                    + " again or press " + EXIT + " to EXIT to the menu");
             wordUser = scanner.nextLine();
         }
-        if (wordUser.equals(String.valueOf(exit))) {
-            logger.warn("the exit to the menu was selected instead writing the {}", wordName);
+        if (wordUser.equals(String.valueOf(EXIT))) {
+            logger.warn("the EXIT to the menu was selected instead writing the {}", wordName);
             wordUser = null;
         } else {
             logger.info("The number was written correct: {}", wordUser);
@@ -97,7 +99,7 @@ public class CheckWriting implements Checker {
             } else {
                 logger.warn("The word was written incorrect, the email should be empty like ***@***.***, but was: {}", email);
                 System.out.println("Incorrect email, the email should be like ***@***.***. " +
-                        "Please write the email again or press " + exit + " to exit to the menu");
+                        "Please write the email again or press " + EXIT + " to EXIT to the menu");
                 email = checkWord("email");
             }
         }

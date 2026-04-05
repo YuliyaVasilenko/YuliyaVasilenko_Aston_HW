@@ -2,7 +2,7 @@ package menu;
 
 import dao.UserDAO;
 import input.CheckWriting;
-import models.User;
+import models.UserEntity;
 import view.Viewer;
 
 import java.util.List;
@@ -17,13 +17,14 @@ import java.util.List;
 public class MainManager {
     private UserDAO userDAO = new UserDAO();
     private CheckWriting checker = new CheckWriting();
+    private Viewer viewer = new Viewer();
 
     /**
      * @ Method Name: find
      * @ Description: select the 'id' and send a request to search in the database
-     * @ param -> return: [] [] -> models.User
+     * @ param -> return: [] [] -> models.UserEntity
      */
-    public User find() {
+    public UserEntity find() {
         int id = selectId();
         return userDAO.findById(id);
     }
@@ -32,17 +33,17 @@ public class MainManager {
      * @ Method Name: create
      * @ Description: ask to enter the fields for the user's object (name, email, age),
      * then create a user and send a request to create an entry in the database
-     * @ param -> return: [] [] -> models.User
+     * @ param -> return: [] [] -> models.UserEntity
      */
-    public User create() {
+    public UserEntity create() {
         String name = checker.checkWord("name");
         if (name != null) {
             String email = checker.checkEmail();
             if (email != null) {
                 int age = checker.checkNumber("age", 1, 100);
                 if (age > 0) {
-                    User user = new User(name, email, age);
-                    return userDAO.create(user);
+                    UserEntity userEntity = new UserEntity(name, email, age);
+                    return userDAO.create(userEntity);
                 }
             }
         }
@@ -52,9 +53,9 @@ public class MainManager {
     /**
      * @ Method Name: findAll
      * @ Description: send a request to search all users in the database
-     * @ param -> return: [] [] -> java.util.List<models.User>
+     * @ param -> return: [] [] -> java.util.List<models.UserEntity>
      */
-    public List<User> findAll() {
+    public List<UserEntity> findAll() {
         return userDAO.findAll();
     }
 
@@ -62,34 +63,37 @@ public class MainManager {
      * @ Method Name: update
      * @ Description: find the user, then ask which field should to be updated and the new data,
      * then update the selected field, then send a request to update the user in the database
-     * @ param -> return: [] [] -> models.User
+     * @ param -> return: [] [] -> models.UserEntity
      */
-    public User update() {
-        User user = find();
-        if (user != null) {
-            Viewer.askFieldToUpdate();
+    public UserEntity update() {
+        UserEntity userEntity = find();
+        if (userEntity != null) {
+            viewer.askFieldToUpdate();
             int numberOfFieldToUpdate = checker.checkNumber("field to update", 1, 3);
             if (numberOfFieldToUpdate == 0) {
-                user = null;
+                userEntity = null;
             } else {
                 switch (numberOfFieldToUpdate) {
                     case 1 -> {
                         String name = checker.checkWord("name");
-                        user.setName(name);
+                        if (name == null) return null;
+                        userEntity.setName(name);
                     }
                     case 2 -> {
                         String email = checker.checkWord("email");
-                        user.setEmail(email);
+                        userEntity.setEmail(email);
+                        if (email == null) return null;
                     }
                     case 3 -> {
                         int age = checker.checkNumber("age", 1, 100);
-                        user.setAge(age);
+                        if (age <= 0) return null;
+                        userEntity.setAge(age);
                     }
                 }
-                user = userDAO.update(user);
+                userEntity = userDAO.update(userEntity);
             }
         }
-        return user;
+        return userEntity;
     }
 
     /**
@@ -108,7 +112,7 @@ public class MainManager {
      * @ param -> return: [] [] -> int
      */
     public int selectId() {
-        Viewer.askId();
+        viewer.askId();
         return checker.checkNumber("id", 1, 1000);
     }
 }

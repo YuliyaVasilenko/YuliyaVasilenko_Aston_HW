@@ -1,7 +1,7 @@
 package view;
 
 import menu.Menu;
-import models.User;
+import models.UserEntity;
 
 import java.util.List;
 
@@ -17,7 +17,7 @@ public class Viewer {
      * @ Description: printing all operations which that are in the Menu
      * @ param -> return: [] [] -> void
      */
-    public static void showOperations() {
+    public void showOperations() {
         for (Menu menu : Menu.values()) {
             System.out.println(menu);
         }
@@ -28,18 +28,18 @@ public class Viewer {
      * @ Description: printing the request to select an operation
      * @ param -> return: [] [] -> void
      */
-    public static void saySelectOperation() {
+    public void saySelectOperation() {
         System.out.println("Please select an operation:");
     }
 
     /**
      * @ Method Name: showResult
-     * @ Description: printing the result of the operation (User and the name of the command)
-     * @ param -> return: [models.User, java.lang.String] [user, command] -> void
+     * @ Description: printing the result of the operation (UserEntity and the name of the command)
+     * @ param -> return: [models.UserEntity, java.lang.String] [userEntity, command] -> void
      */
-    public static void showResult(User user, String command) {
-        if (user != null) {
-            System.out.println("The operation was successful, " + command + "=" + user);
+    public void showResult(UserEntity userEntity, String command) {
+        if (userEntity != null) {
+            System.out.println("The operation was successful, " + command + "=" + userEntity);
         } else {
             System.out.println("The operation was wrong, could not " + command);
         }
@@ -50,7 +50,7 @@ public class Viewer {
      * @ Description: printing the result of the operation (boolean result and the name of the command)
      * @ param -> return: [boolean, java.lang.String] [isSucceed, command] -> void
      */
-    public static void showResult(boolean isSucceed, String command) {
+    public void showResult(boolean isSucceed, String command) {
         if (isSucceed) {
             System.out.println("The operation was successful, " + command);
         } else {
@@ -60,12 +60,12 @@ public class Viewer {
 
     /**
      * @ Method Name: showResult
-     * @ Description: printing the result of the operation (List<User>)
-     * @ param -> return: [java.util.List<models.User>] [users] -> void
+     * @ Description: printing the result of the operation (List<UserEntity>)
+     * @ param -> return: [java.util.List<models.UserEntity>] [userEntities] -> void
      */
-    public static void showResult(List<User> users) {
-        System.out.println("The operation was successful, found " + users.size() + " users:");
-        users.forEach(System.out::println);
+    public void showResult(List<UserEntity> userEntities) {
+        System.out.println("The operation was successful, found " + userEntities.size() + " userEntities:");
+        userEntities.forEach(System.out::println);
     }
 
     /**
@@ -73,7 +73,7 @@ public class Viewer {
      * @ Description: printing the request to enter the Id
      * @ param -> return: [] [] -> void
      */
-    public static void askId() {
+    public void askId() {
         System.out.println("Write the user's id, to exit press 0");
     }
 
@@ -82,7 +82,7 @@ public class Viewer {
      * @ Description: printing the request to enter the number of field to be updated
      * @ param -> return: [] [] -> void
      */
-    public static void askFieldToUpdate() {
+    public void askFieldToUpdate() {
         System.out.println("If you want "
                 + "to change user's name press 1, "
                 + "to change user's email press 2, "
