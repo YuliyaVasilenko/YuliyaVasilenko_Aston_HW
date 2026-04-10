@@ -3,7 +3,7 @@ Hibernate настроено с помощью hibernate.cfg.xml, логиров
 
 Общая структура приложения:
 Viewer, CheckWriting <-> MenuManager <-> Menu; MenuManager <-> MainManager;
-Viewer, CheckWriting <-> MainManager <-> UserDao <-> database
+Viewer, CheckWriting <-> MainManager <-> UserDao <-> database;
                   
 Viewer - класс, который выводит в консоль нужную информацию;
 CheckWriting - класс, который получает из консоли информацию и проверяет введённые данные;
