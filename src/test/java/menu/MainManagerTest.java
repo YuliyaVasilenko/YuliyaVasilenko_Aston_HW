@@ -34,18 +34,25 @@ import static org.mockito.Mockito.when;
  */
 @ExtendWith(MockitoExtension.class)
 class MainManagerTest {
+    private final String TEST_NAME = "TestName";
+
+    private final String TEST_EMAIL = "test@test.ru";
+
+    private final int TEST_AGE = 10;
+
     @Spy
-    MainManager mainManager;
+    private MainManager mainManager;
+
     @Mock
-    UserDAO mockUserDAO;
+    private UserDAO mockUserDAO;
+
     @Mock
-    CheckWriting mockCheckWriting;
+    private CheckWriting mockCheckWriting;
+
     @Mock
-    Viewer mockViewer;
-    String name = "TestName";
-    String email = "test@test.ru";
-    int age = 10;
-    UserEntity expectedUserEntity;
+    private Viewer mockViewer;
+
+    private UserEntity expectedUserEntity;
 
     @BeforeEach
     void setUp() {
@@ -64,21 +71,21 @@ class MainManagerTest {
         } catch (NoSuchFieldException | IllegalAccessException e) {
             System.out.println(e.getMessage());
         }
-        expectedUserEntity = new UserEntity(name, email, age);
+        expectedUserEntity = new UserEntity(TEST_NAME, TEST_EMAIL, TEST_AGE);
     }
 
     @Test
     void create_correctNameEmailAgeDAOCreation_ReturnUser() {
-        when(mockCheckWriting.checkWord("name")).thenReturn(name);
-        when(mockCheckWriting.checkEmail()).thenReturn(email);
-        when(mockCheckWriting.checkNumber("age", 1, 100)).thenReturn(age);
+        when(mockCheckWriting.checkWord("name")).thenReturn(TEST_NAME);
+        when(mockCheckWriting.checkEmail()).thenReturn(TEST_EMAIL);
+        when(mockCheckWriting.checkNumber("age", 1, 100)).thenReturn(TEST_AGE);
         when(mockUserDAO.create(expectedUserEntity)).thenReturn(expectedUserEntity);
 
         UserEntity result = mainManager.create();
 
         assertEquals(expectedUserEntity, result);
         verify(mockCheckWriting, times(1)).checkWord("name");
-        verify(mockCheckWriting,times(1)).checkEmail();
+        verify(mockCheckWriting, times(1)).checkEmail();
         verify(mockCheckWriting, times(1)).checkNumber("age", 1, 100);
         verify(mockUserDAO, only()).create(expectedUserEntity);
     }
@@ -98,7 +105,7 @@ class MainManagerTest {
 
     @Test
     void create_NullEmail_ReturnNull() {
-        when(mockCheckWriting.checkWord("name")).thenReturn(name);
+        when(mockCheckWriting.checkWord("name")).thenReturn(TEST_NAME);
         when(mockCheckWriting.checkEmail()).thenReturn(null);
 
         UserEntity result = mainManager.create();
@@ -112,8 +119,8 @@ class MainManagerTest {
 
     @Test
     void create_IncorrectAge_ReturnNull() {
-        when(mockCheckWriting.checkWord("name")).thenReturn(name);
-        when(mockCheckWriting.checkEmail()).thenReturn(email);
+        when(mockCheckWriting.checkWord("name")).thenReturn(TEST_NAME);
+        when(mockCheckWriting.checkEmail()).thenReturn(TEST_EMAIL);
         when(mockCheckWriting.checkNumber("age", 1, 100)).thenReturn(-1);
 
         UserEntity result = mainManager.create();
@@ -127,9 +134,9 @@ class MainManagerTest {
 
     @Test
     void create_IncorrectUserDAOCreation_ReturnNull() {
-        when(mockCheckWriting.checkWord("name")).thenReturn(name);
-        when(mockCheckWriting.checkEmail()).thenReturn(email);
-        when(mockCheckWriting.checkNumber("age", 1, 100)).thenReturn(age);
+        when(mockCheckWriting.checkWord("name")).thenReturn(TEST_NAME);
+        when(mockCheckWriting.checkEmail()).thenReturn(TEST_EMAIL);
+        when(mockCheckWriting.checkNumber("age", 1, 100)).thenReturn(TEST_AGE);
         when(mockUserDAO.create(any(UserEntity.class))).thenReturn(null);
 
         UserEntity result = mainManager.create();
@@ -173,7 +180,7 @@ class MainManagerTest {
         doReturn(expectedUserEntity).when(mainManager).find();
         when(mockCheckWriting.checkNumber("field to update", 1, 3)).thenReturn(1);
         String newName = "NewTestName";
-        UserEntity updatedUserEntity = new UserEntity(newName, email, age);
+        UserEntity updatedUserEntity = new UserEntity(newName, TEST_EMAIL, TEST_AGE);
         when(mockCheckWriting.checkWord("name")).thenReturn(newName);
         when(mockUserDAO.update(expectedUserEntity)).thenReturn(updatedUserEntity);
 
@@ -181,8 +188,8 @@ class MainManagerTest {
 
         assertNotNull(result);
         assertEquals(newName, result.getName());
-        assertEquals(email, result.getEmail());
-        assertEquals(age, result.getAge());
+        assertEquals(TEST_EMAIL, result.getEmail());
+        assertEquals(TEST_AGE, result.getAge());
 
         verify(mainManager, times(1)).find();
         verify(mockViewer, times(1)).askFieldToUpdate();
@@ -212,7 +219,7 @@ class MainManagerTest {
         doReturn(expectedUserEntity).when(mainManager).find();
         when(mockCheckWriting.checkNumber("field to update", 1, 3)).thenReturn(2);
         String newEmail = "newTestemail@test.ru";
-        UserEntity updatedUserEntity = new UserEntity(name, newEmail, age);
+        UserEntity updatedUserEntity = new UserEntity(TEST_NAME, newEmail, TEST_AGE);
         when(mockCheckWriting.checkWord("email")).thenReturn(newEmail);
         when(mockUserDAO.update(expectedUserEntity)).thenReturn(updatedUserEntity);
 
@@ -220,8 +227,8 @@ class MainManagerTest {
 
         assertNotNull(result);
         assertEquals(newEmail, result.getEmail());
-        assertEquals(name, result.getName());
-        assertEquals(age, result.getAge());
+        assertEquals(TEST_NAME, result.getName());
+        assertEquals(TEST_AGE, result.getAge());
 
         verify(mainManager, times(1)).find();
         verify(mockViewer, times(1)).askFieldToUpdate();
@@ -251,16 +258,16 @@ class MainManagerTest {
         doReturn(expectedUserEntity).when(mainManager).find();
         when(mockCheckWriting.checkNumber("field to update", 1, 3)).thenReturn(3);
         int newAge = 30;
-        UserEntity updatedUserEntity = new UserEntity(name, email, newAge);
-        when(mockCheckWriting.checkNumber("age", 1, 100)).thenReturn(age);
+        UserEntity updatedUserEntity = new UserEntity(TEST_NAME, TEST_EMAIL, newAge);
+        when(mockCheckWriting.checkNumber("age", 1, 100)).thenReturn(TEST_AGE);
         when(mockUserDAO.update(expectedUserEntity)).thenReturn(updatedUserEntity);
 
         UserEntity result = mainManager.update();
 
         assertNotNull(result);
         assertEquals(newAge, result.getAge());
-        assertEquals(name, result.getName());
-        assertEquals(email, result.getEmail());
+        assertEquals(TEST_NAME, result.getName());
+        assertEquals(TEST_EMAIL, result.getEmail());
 
         verify(mainManager, times(1)).find();
         verify(mockViewer, times(1)).askFieldToUpdate();

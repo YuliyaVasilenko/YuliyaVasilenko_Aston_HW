@@ -33,14 +33,18 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class MenuManagerTest {
     @Spy
-    MenuManager menuManager;
+    private MenuManager menuManager;
+
     @Mock
-    MainManager mockMainManager;
+    private MainManager mockMainManager;
+
     @Mock
-    CheckWriting mockCheckWriting;
+    private CheckWriting mockCheckWriting;
+
     @Mock
-    Viewer mockViewer;
-    UserEntity userEntity;
+    private Viewer mockViewer;
+
+    private UserEntity userEntity;
 
     @BeforeEach
     void setUp() {

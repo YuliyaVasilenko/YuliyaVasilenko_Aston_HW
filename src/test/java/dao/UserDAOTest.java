@@ -31,7 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class UserDAOTest {
     @Container
     private static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15");
-    UserDAO userDAO;
+
+    private UserDAO userDAO;
 
     @BeforeEach
     void setUp() {

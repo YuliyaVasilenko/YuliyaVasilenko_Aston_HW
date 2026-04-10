@@ -27,12 +27,15 @@ import static org.mockito.Mockito.mockStatic;
  */
 @ExtendWith(MockitoExtension.class)
 class CheckWritingTest {
+    private final int EXIT_NUM = CheckWriting.getEXIT();
+
+    private final String EXIT = String.valueOf(CheckWriting.getEXIT());
+
     @Spy
-    CheckWriting checker;
+    private CheckWriting checker;
+
     @Mock
-    Scanner mockScanner;
-    int exitNum = CheckWriting.getEXIT();
-    String exit = String.valueOf(CheckWriting.getEXIT());
+    private Scanner mockScanner;
 
     @BeforeEach
     void setUp() {
@@ -60,11 +63,11 @@ class CheckWritingTest {
     @Test
     void checkNumber_SelectExit_ReturnExit() {
         try (MockedStatic<Scanner> mocked = mockStatic(Scanner.class)) {
-            mocked.when(mockScanner::nextLine).thenReturn(exit);
+            mocked.when(mockScanner::nextLine).thenReturn(EXIT);
 
             int result = checker.checkNumber("testNumber", 1, 100);
 
-            assertEquals(exitNum, result);
+            assertEquals(EXIT_NUM, result);
         }
     }
 
@@ -72,12 +75,12 @@ class CheckWritingTest {
     @ValueSource(ints = {-5, 101, 404})
     void checkNumber_validNumberOutOfRange_ReturnExitInsteadInput(int input) {
         try (MockedStatic<Scanner> mocked = mockStatic(Scanner.class)) {
-            mocked.when(mockScanner::nextLine).thenReturn(String.valueOf(input)).thenReturn(exit);
+            mocked.when(mockScanner::nextLine).thenReturn(String.valueOf(input)).thenReturn(EXIT);
 
             int result = checker.checkNumber("testNumber", 1, 100);
 
             assertNotEquals(input, result);
-            assertEquals(exitNum, result);
+            assertEquals(EXIT_NUM, result);
         }
     }
 
@@ -85,12 +88,12 @@ class CheckWritingTest {
     @ValueSource(strings = {"aaa", "a1b", "12Ab", "", "   ", "\t", "@", "@*#"})
     void checkNumber_InvalidNumberFormat_ReturnExitInsteadInput(String input) {
         try (MockedStatic<Scanner> mocked = mockStatic(Scanner.class)) {
-            mocked.when(mockScanner::nextLine).thenReturn(input).thenReturn(exit);
+            mocked.when(mockScanner::nextLine).thenReturn(input).thenReturn(EXIT);
 
             int result = checker.checkNumber("testNumber", 1, 100);
 
             assertNotEquals(input, String.valueOf(result));
-            assertEquals(exitNum, result);
+            assertEquals(EXIT_NUM, result);
         }
     }
 
@@ -109,7 +112,7 @@ class CheckWritingTest {
     @Test
     void checkWord_SelectExit_ReturnNull() {
         try (MockedStatic<Scanner> mocked = mockStatic(Scanner.class)) {
-            mocked.when(mockScanner::nextLine).thenReturn(exit);
+            mocked.when(mockScanner::nextLine).thenReturn(EXIT);
 
             String result = checker.checkWord("testWord");
 
@@ -121,7 +124,7 @@ class CheckWritingTest {
     @ValueSource(strings = {"", "   ", "\t"})
     void checkWord_BlankWord_ReturnNullInsteadInput(String input) {
         try (MockedStatic<Scanner> mocked = mockStatic(Scanner.class)) {
-            mocked.when(mockScanner::nextLine).thenReturn(input).thenReturn(exit);
+            mocked.when(mockScanner::nextLine).thenReturn(input).thenReturn(EXIT);
 
             String result = checker.checkWord("testWord");
 

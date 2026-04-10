@@ -18,9 +18,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  */
 class ViewerTest {
     private final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
     private final PrintStream originalOut = System.out;
+
     private Viewer viewer;
-    String command = "save user";
+
+    private final String command = "save user";
 
     @BeforeEach
     void setUp() {
