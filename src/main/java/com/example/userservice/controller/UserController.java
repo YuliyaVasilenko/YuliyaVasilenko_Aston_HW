@@ -34,7 +34,7 @@ import java.util.Optional;
  * All endpoints return appropriate HTTP status codes and include comprehensive logging for monitoring and debugging purposes.
  */
 @RestController
-@RequestMapping("/hw4/users")
+@RequestMapping("/api/users")
 @AllArgsConstructor
 @Validated
 public class UserController {

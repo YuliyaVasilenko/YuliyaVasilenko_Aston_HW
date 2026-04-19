@@ -7,8 +7,6 @@ import com.example.userservice.service.UserService;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -22,8 +20,7 @@ import java.util.Optional;
  */
 @Component
 @AllArgsConstructor
-@Profile("!test")
-public class ConsoleMenu implements CommandLineRunner {
+public class ConsoleMenu { //implements CommandLineRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(ConsoleMenu.class);
 
@@ -33,10 +30,10 @@ public class ConsoleMenu implements CommandLineRunner {
 
     private ConsoleMenuViewer viewer;
 
-    @Override
+    /*@Override
     public void run(String... args) {
         proceed();
-    }
+    }*/
 
     /**
      * @ Method Name: proceed

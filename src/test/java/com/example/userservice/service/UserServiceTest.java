@@ -1,7 +1,10 @@
 package com.example.userservice.service;
 
+import com.example.userservice.BaseIntegrationTest;
 import com.example.userservice.dto.UserDTO;
 import com.example.userservice.exception.UserNotFoundException;
+import com.example.userservice.kafka.KafkaProducerService;
+import com.example.userservice.kafka.UserEvent;
 import com.example.userservice.model.UserEntity;
 import com.example.userservice.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -37,7 +41,7 @@ import static org.mockito.Mockito.when;
  * Description: тесты для класса UserService
  */
 @ExtendWith(MockitoExtension.class)
-class UserServiceTest {
+class UserServiceTest extends BaseIntegrationTest {
 
     UserEntity userEntity;
 
@@ -48,6 +52,9 @@ class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private KafkaProducerService kafkaProducerService;
 
     @Spy
     private ModelMapper modelMapper;
@@ -65,6 +72,7 @@ class UserServiceTest {
     @Test
     void createUser_Success_ReturnUserDTO() {
         when(userRepository.save(any(UserEntity.class))).thenReturn(userEntity);
+        doNothing().when(kafkaProducerService).sendMessage(any(UserEvent.class));
 
         UserDTO result = userService.createUser(userDTO);
 
@@ -175,7 +183,6 @@ class UserServiceTest {
     void updateUser_NotFound_ThrowUserNotFoundException() {
         Long nonExistentId = 999L;
         userDTO.setId(nonExistentId);
-
         when(userRepository.findById(nonExistentId)).thenReturn(Optional.empty());
 
         assertThrows(UserNotFoundException.class,
@@ -188,19 +195,21 @@ class UserServiceTest {
     @Test
     void deleteUser() {
         Long userId = 1L;
-
         when(userRepository.existsById(userId)).thenReturn(true);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(userEntity));
+        doNothing().when(kafkaProducerService).sendMessage(any(UserEvent.class));
+        doNothing().when(userRepository).deleteById(userId);
 
         userService.deleteUser(userId);
 
         verify(userRepository, times(1)).existsById(userId);
         verify(userRepository, times(1)).deleteById(userId);
+        verify(kafkaProducerService, times(1)).sendMessage(any(UserEvent.class));
     }
 
     @Test
     void deleteUser_NotFound_ThrowUserNotFoundException() {
         Long nonExistentId = 999L;
-
         when(userRepository.existsById(nonExistentId)).thenReturn(false);
 
         assertThrows(UserNotFoundException.class,

@@ -75,7 +75,7 @@ class UserControllerTest {
     void createUser_Success_ReturnCreated() throws Exception {
         when(userService.createUser(any(UserDTO.class))).thenReturn(userDTO);
 
-        mockMvc.perform(post("/hw4/users")
+        mockMvc.perform(post("/api/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(validJson))
                 .andExpect(status().isCreated())
@@ -90,7 +90,7 @@ class UserControllerTest {
     void createUser_ValidationError_ReturnBadRequest() throws Exception {
         String invalidJson = "{\"TEST_NAME\":\"\",\"TEST_EMAIL\":\"invalid-TEST_EMAIL\",\"TEST_AGE\":-10}";
 
-        mockMvc.perform(post("/hw4/users")
+        mockMvc.perform(post("/api/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(invalidJson))
                 .andExpect(status().isBadRequest())
@@ -101,7 +101,7 @@ class UserControllerTest {
     void getUserById_Success_ReturnUser() throws Exception {
         when(userService.findUserById(userId)).thenReturn(Optional.of(userDTO));
 
-        mockMvc.perform(get("/hw4/users/{id}", userId))
+        mockMvc.perform(get("/api/users/{id}", userId))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(userId))
@@ -115,7 +115,7 @@ class UserControllerTest {
         Long userId = 999L;
         when(userService.findUserById(userId)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/hw4/users/{id}", userId))
+        mockMvc.perform(get("/api/users/{id}", userId))
                 .andExpect(status().isNotFound());
     }
 
@@ -126,7 +126,7 @@ class UserControllerTest {
         List<UserDTO> users = Arrays.asList(userDTO, userDTO2);
         when(userService.findAllUsers()).thenReturn(users);
 
-        mockMvc.perform(get("/hw4/users"))
+        mockMvc.perform(get("/api/users"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$").isArray())
@@ -139,7 +139,7 @@ class UserControllerTest {
     void getAllUsers_NoUsers_ReturnListEmpty() throws Exception {
         when(userService.findAllUsers()).thenReturn(new ArrayList<>());
 
-        mockMvc.perform(get("/hw4/users"))
+        mockMvc.perform(get("/api/users"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$").isArray())
@@ -153,7 +153,7 @@ class UserControllerTest {
 
         when(userService.updateUser(any(Long.class), any(UserDTO.class))).thenReturn(updatedUser);
 
-        mockMvc.perform(put("/hw4/users/{id}", userId)
+        mockMvc.perform(put("/api/users/{id}", userId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(userDTO)))
                 .andExpect(status().isOk())
@@ -172,7 +172,7 @@ class UserControllerTest {
         when(userService.updateUser(any(Long.class), any(UserDTO.class)))
                 .thenThrow(new UserNotFoundException("User not found"));
 
-        mockMvc.perform(put("/hw4/users/{id}", userId)
+        mockMvc.perform(put("/api/users/{id}", userId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(userDTO)))
                 .andExpect(status().isNotFound());
@@ -183,7 +183,7 @@ class UserControllerTest {
         UserDTO invalidDTO = new UserDTO("", "invalid-TEST_EMAIL", -5);
         invalidDTO.setId(userId);
 
-        mockMvc.perform(put("/hw4/users/{id}", userId)
+        mockMvc.perform(put("/api/users/{id}", userId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidDTO)))
                 .andExpect(status().isBadRequest());
@@ -192,7 +192,7 @@ class UserControllerTest {
     @Test
     void deleteUser_ShouldReturnNoContent() throws Exception {
 
-        mockMvc.perform(delete("/hw4/users/{id}", userId))
+        mockMvc.perform(delete("/api/users/{id}", userId))
                 .andExpect(status().isNoContent());
 
         verify(userService, times(1)).deleteUser(userId);

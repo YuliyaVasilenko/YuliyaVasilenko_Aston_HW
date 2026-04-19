@@ -2,14 +2,17 @@ package com.example.userservice.service;
 
 import com.example.userservice.dto.UserDTO;
 import com.example.userservice.exception.UserNotFoundException;
+import com.example.userservice.kafka.KafkaProducerService;
+import com.example.userservice.kafka.UserEvent;
+import com.example.userservice.kafka.UserOperation;
 import com.example.userservice.model.UserEntity;
 import com.example.userservice.repository.UserRepository;
-import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -32,6 +35,8 @@ public class UserService {
 
     private final ModelMapper modelMapper;
 
+    private final KafkaProducerService kafkaProducerService;
+
     /**
      * @ Method Name: createUser
      * @ Description: creates a new user based on the provided UserDTO
@@ -47,6 +52,9 @@ public class UserService {
         UserEntity savedUser = userRepository.save(userEntity);
         logger.info("User saved to database with ID: {}", savedUser.getId());
 
+        kafkaProducerService.sendMessage(new UserEvent(UserOperation.CREATE, savedUser.getEmail()));
+        logger.info("Sent to Kafka an event: {}, to email: {}", UserOperation.CREATE, savedUser.getEmail());
+
         UserDTO response = modelMapper.map(savedUser, UserDTO.class);
         logger.debug("Mapped entity to response DTO: {}", response);
 
@@ -59,6 +67,7 @@ public class UserService {
      * @ param      : [java.lang.Long]
      * @ return     : java.util.Optional<com.example.userservice.dto.UserDTO>
      */
+    @Transactional(readOnly = true)
     public Optional<UserDTO> findUserById(Long id) throws UserNotFoundException {
         logger.info("Fetching user by ID: {}", id);
 
@@ -82,6 +91,7 @@ public class UserService {
      * @ param      : []
      * @ return     : java.util.List<com.example.userservice.dto.UserDTO>
      */
+    @Transactional(readOnly = true)
     public List<UserDTO> findAllUsers() {
         logger.info("Fetching all users from database");
 
@@ -141,7 +151,11 @@ public class UserService {
             throw new UserNotFoundException("User to delete not found");
         }
 
+        String email = userRepository.findById(id).map(UserEntity::getEmail).orElseThrow();
         userRepository.deleteById(id);
+
+        kafkaProducerService.sendMessage(new UserEvent(UserOperation.DELETE, email));
+        System.out.println("kafka");
         logger.info("User successfully deleted with ID: {}", id);
     }
 
