@@ -1,4 +1,4 @@
-package models;
+package com.example.userservice.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -7,11 +7,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -25,12 +23,11 @@ import java.time.LocalDateTime;
  */
 @Getter
 @Setter
-@EqualsAndHashCode
-@ToString
 @NoArgsConstructor
 @Entity
 @Table(name = "users")
 public class UserEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "users_seq_gen")
     @SequenceGenerator(
@@ -39,7 +36,7 @@ public class UserEntity {
             allocationSize = 1
     )
     @Column(name = "id", nullable = false)
-    private int id;
+    private Long id;
 
     @Column(name = "name", nullable = false)
     private String name;
@@ -58,9 +55,4 @@ public class UserEntity {
     @Column(name = "updated_at")
     private LocalDateTime updated_at;
 
-    public UserEntity(String name, String email, int age) {
-        this.name = name;
-        this.email = email;
-        this.age = age;
-    }
 }
