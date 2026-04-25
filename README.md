@@ -1,13 +1,7 @@
-Консольное приложение, реализующее CRUD-операции для сущности User. База данных — PostgreSQL, Hibernate в качестве ORM. Система сборки Maven.
-Hibernate настроено с помощью hibernate.cfg.xml, логирование настроено с помощью log4j2.xml.
+Реализовано приложение user-service, реализующее CRUD-операции для сущности User.
 
-Общая структура приложения:
-Viewer, CheckWriting <-> MenuManager <-> Menu; MenuManager <-> MainManager;
-Viewer, CheckWriting <-> MainManager <-> UserDao <-> database;
-                  
-Viewer - класс, который выводит в консоль нужную информацию;
-CheckWriting - класс, который получает из консоли информацию и проверяет введённые данные;
-MenuManager - класс, который отвечает за работу меню приложения;
-Menu - перечисление, которое отображает возможные команды в меню ("кнопки");
-MainManager - класс, который отвечает за главную логику работы приложения;
-UserDao - класс, который отвечает за взаимодействие с базой данных;
+Использованы модули spring: boot (4.0.5), webmvc, data, validation.
+База данных — PostgreSQL. Система сборки Maven.
+
+Написаны тесты с использованием SpringBootTest, SpringBoot-WebMVC-Test, JUnit 5, Mockito;
+интеграционные тесты с RestTemplate.
