@@ -62,7 +62,8 @@ public class UserApiIntegrationTest extends BaseIntegrationTest {
     private Long createTestUser(UserDTO user) {
         ResponseEntity<UserDTO> response = restTemplate.postForEntity(path, user, UserDTO.class);
 
-        return userRepository.findByEmail(user.getEmail()).getFirst().getId();
+        assertNotNull(response.getBody());
+        return response.getBody().getId();
     }
 
     @Test

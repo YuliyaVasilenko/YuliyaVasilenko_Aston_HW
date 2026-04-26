@@ -20,6 +20,8 @@
 
         <modelmapper.version>3.1.1</modelmapper.version>
         <postgresql.version>42.7.10</postgresql.version>
+        <openapi.version>3.0.3</openapi.version>
+        <hateoas.version>4.1.0-M3</hateoas.version>
 
         <testcontainers-containers.version>1.21.3</testcontainers-containers.version>
     </properties>
@@ -76,6 +78,26 @@
             <artifactId>postgresql</artifactId>
             <version>${postgresql.version}</version>
             <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>${openapi.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-common</artifactId>
+            <version>${openapi.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-hateoas</artifactId>
+            <version>${hateoas.version}</version>
+            <scope>compile</scope>
         </dependency>
 
         <dependency>

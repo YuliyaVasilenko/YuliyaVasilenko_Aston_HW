@@ -14,6 +14,4 @@ import java.util.List;
  */
 //@Repository
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
-
-    List<UserEntity> findByEmail(String email);
 }

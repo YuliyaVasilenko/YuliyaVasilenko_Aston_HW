@@ -69,10 +69,8 @@ public class UserServiceDAOTest extends BaseIntegrationTest {
     @Test
     void findUserById_ValidId_ReturnOptionalOfUserDTO() {
         UserDTO createdUser = userService.createUser(userDTO);
-        List<UserEntity> users = userRepository.findByEmail(createdUser.getEmail());
-        Long userId = users.getFirst().getId();
 
-        Optional<UserDTO> foundUser = userService.findUserById(userId);
+        Optional<UserDTO> foundUser = userService.findUserById(createdUser.getId());
 
         assertThat(foundUser).isPresent();
         assertThat(foundUser.get().getName()).isEqualTo(TEST_NAME);
@@ -110,14 +108,12 @@ public class UserServiceDAOTest extends BaseIntegrationTest {
     @Test
     void updateUser_shouldUpdateUser() {
         userDTO = userService.createUser(userDTO);
-        List<UserEntity> users = userRepository.findByEmail(userDTO.getEmail());
-        Long userId = users.getFirst().getId();
 
         userDTO.setName("NewName");
         userDTO.setEmail("new@example.com");
         userDTO.setAge(75);
 
-        UserDTO updatedUser = userService.updateUser(userId, userDTO);
+        UserDTO updatedUser = userService.updateUser(userDTO.getId(), userDTO);
 
         assertThat(updatedUser).isNotNull();
         assertThat("NewName").isEqualTo(updatedUser.getName());
@@ -128,10 +124,8 @@ public class UserServiceDAOTest extends BaseIntegrationTest {
     @Test
     void deleteUser_ValidId_Success() {
         userDTO = userService.createUser(userDTO);
-        List<UserEntity> users = userRepository.findByEmail(userDTO.getEmail());
-        Long userId = users.getFirst().getId();
 
-        assertDoesNotThrow(() -> userService.deleteUser(userId));
+        assertDoesNotThrow(() -> userService.deleteUser(userDTO.getId()));
     }
 
     @ParameterizedTest

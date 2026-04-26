@@ -1,11 +1,12 @@
 Реализован микросервис (user-service), поддерживающий базовые операции CRUD для сущности User.
 При создании и удалении пользователя отправляется событие в Kafka.
+Добавлена Swagger-документация (Springdoc OpenAPI) и HATEOAS.
 
 Реализован микросервис(notification-service) для отправки сообщения на почту при удалении или добавлении пользователя.
 При получении события из Kafka отправляется email пользователю.
 Также отдельно реализовано REST API для отправки email напрямую (без Kafka).
 
-Использованы модули spring: boot (4.0.5), webmvc, data, validation, kafka, mail.
+Использованы модули spring: boot (4.0.5), webmvc, data, validation, kafka, mail, hateoas.
 База данных — PostgreSQL. Система сборки Maven.
 
 Написаны тесты с использованием SpringBootTest, SpringBoot-WebMVC-Test, JUnit 5, Mockito;
