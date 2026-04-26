@@ -5,7 +5,6 @@ import com.example.user_service.dto.UserDTO;
 import com.example.user_service.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -44,7 +43,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
  * All endpoints return appropriate HTTP status codes and include comprehensive logging for monitoring and debugging purposes.
  */
 @RestController
-@RequestMapping(value = "/api/users", produces = "application/hal+json", consumes = "application/json")
+@RequestMapping("/api/users")
 @AllArgsConstructor
 @Validated
 @Tag(name = "User Management", description = "API for managing user operations")
@@ -53,6 +52,8 @@ public class UserController {
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     private UserService userService;
+
+    private UserControllerAssembler assembler;
 
     /**
      * @ Method Name: createUser
@@ -68,22 +69,18 @@ public class UserController {
                     "name, email, age, date of creation, date of last update",
             responses = {
                     @ApiResponse(responseCode = "201", description = "User created successfully"),
-                    @ApiResponse(responseCode = "400", description = "Invalid input data", content = @Content())
+                    @ApiResponse(responseCode = "400", description = "Invalid input data")
 
             })
-    @PostMapping(produces = "application/hal+json")
+    @PostMapping
     public ResponseEntity<EntityModel<UserDTO>> createUser(@Parameter(description = "UserDTO with fields name, email, age", required = true)
                                                            @RequestBody @Valid UserDTO userDTO) {
         logger.info("Received CREATE user request. Request data: {}", userDTO);
 
         UserDTO createdUser = userService.createUser(userDTO);
 
-        EntityModel<UserDTO> userResource = EntityModel.of(createdUser);
-        userResource.add(linkTo(methodOn(UserController.class).getUserById(createdUser.getId())).withSelfRel());
-        userResource.add(linkTo(methodOn(UserController.class).getAllUsers()).withRel("all-users"));
-
         logger.info("User created successfully. Response: {}, HTTP status: CREATED", createdUser);
-        return ResponseEntity.status(HttpStatus.CREATED).body(userResource);
+        return ResponseEntity.status(HttpStatus.CREATED).body(assembler.toModel(createdUser));
     }
 
     /**
@@ -98,7 +95,7 @@ public class UserController {
             description = "Fetches a user by their unique ID",
             responses = {
                     @ApiResponse(responseCode = "200", description = "User found successfully"),
-                    @ApiResponse(responseCode = "404", description = "User not found", content = @Content())
+                    @ApiResponse(responseCode = "404", description = "User not found")
             })
     @GetMapping("/{id}")
     public ResponseEntity<EntityModel<UserDTO>> getUserById(
@@ -106,18 +103,12 @@ public class UserController {
             @PathVariable("id") @NotNull @Positive Long id) {
         logger.info("Received GET user request for ID: {}", id);
 
-        Optional<UserDTO> user = userService.findUserById(id);
-
-        if (user.isPresent()) {
-            EntityModel<UserDTO> userResource = EntityModel.of(user.get());
-            userResource.add(linkTo(methodOn(UserController.class).getUserById(id)).withSelfRel());
-            userResource.add(linkTo(methodOn(UserController.class).getAllUsers()).withRel("all-users"));
-            userResource.add(linkTo(methodOn(UserController.class).updateUser(id, user.get())).withRel("update"));
-            userResource.add(linkTo(methodOn(UserController.class).deleteUser(id)).withRel("delete"));
+        try {
+            Optional<UserDTO> user = userService.findUserById(id);
 
             logger.info("User found successfully. ID: {}, Response: {}", id, user);
-            return new ResponseEntity<>(userResource, HttpStatus.OK);
-        } else {
+            return ResponseEntity.ok(assembler.toModel(user.get()));
+        } catch (UserNotFoundException e) {
             logger.warn("User not found with ID: {}", id);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -136,7 +127,7 @@ public class UserController {
             description = "Fetches a list of all users",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Successfully fetches list of users"),
-                    @ApiResponse(responseCode = "204", description = "No users have been found", content = @Content())
+                    @ApiResponse(responseCode = "204", description = "No users have been found")
             })
     @GetMapping
     public ResponseEntity<CollectionModel<EntityModel<UserDTO>>> getAllUsers() {
@@ -150,19 +141,12 @@ public class UserController {
         }
 
         List<EntityModel<UserDTO>> userResources = users.stream()
-                .map(user -> {
-                    EntityModel<UserDTO> userResource = EntityModel.of(user);
-                    userResource.add(linkTo(methodOn(UserController.class).getUserById(user.getId())).withSelfRel());
-                    userResource.add(linkTo(methodOn(UserController.class).updateUser(user.getId(), user)).withRel("update"));
-                    userResource.add(linkTo(methodOn(UserController.class).deleteUser(user.getId())).withRel("delete"));
-                    return userResource;
-                })
+                .map(assembler::toModel)
                 .collect(Collectors.toList());
 
         CollectionModel<EntityModel<UserDTO>> collectionModel = CollectionModel.of(userResources);
         collectionModel.add(linkTo(methodOn(UserController.class).getAllUsers()).withSelfRel());
         collectionModel.add(linkTo(methodOn(UserController.class).createUser(new UserDTO())).withRel("create"));
-
 
         logger.info("Successfully fetched {} users", users.size());
         return ResponseEntity.ok(collectionModel);
@@ -180,8 +164,8 @@ public class UserController {
             description = "Updates an existing user by their unique ID",
             responses = {
                     @ApiResponse(responseCode = "200", description = "User updated successfully"),
-                    @ApiResponse(responseCode = "400", description = "Invalid input data", content = @Content()),
-                    @ApiResponse(responseCode = "404", description = "User not found", content = @Content())
+                    @ApiResponse(responseCode = "400", description = "Invalid input data"),
+                    @ApiResponse(responseCode = "404", description = "User not found")
             })
     @PutMapping("/{id}")
     public ResponseEntity<EntityModel<UserDTO>> updateUser(@Parameter(description = "ID of the user to update",
@@ -192,17 +176,11 @@ public class UserController {
 
         try {
             UserDTO updatedUser = userService.updateUser(id, userDTO);
-
-            EntityModel<UserDTO> userResource = EntityModel.of(updatedUser);
-            userResource.add(linkTo(methodOn(UserController.class).getUserById(id)).withSelfRel());
-            userResource.add(linkTo(methodOn(UserController.class).getAllUsers()).withRel("all-users"));
-            userResource.add(linkTo(methodOn(UserController.class).deleteUser(id)).withRel("delete"));
-
             logger.info("User updated successfully. ID: {}, Response: {}", id, updatedUser);
-            return ResponseEntity.ok(userResource);
+            return ResponseEntity.ok(assembler.toModel(updatedUser));
         } catch (UserNotFoundException e) {
             logger.warn("User not found for update with ID: {}. Error: {}", id, e.getMessage());
-            return ResponseEntity.notFound().build();
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
@@ -217,7 +195,7 @@ public class UserController {
             description = "Deletes a user by their unique ID",
             responses = {
                     @ApiResponse(responseCode = "204", description = "User deleted successfully"),
-                    @ApiResponse(responseCode = "404", description = "User not found", content = @Content())
+                    @ApiResponse(responseCode = "404", description = "User not found")
             })
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@Parameter(description = "ID of the user to delete", example = "1", required = true)
@@ -230,7 +208,7 @@ public class UserController {
             return ResponseEntity.noContent().build();
         } catch (UserNotFoundException e) {
             logger.warn("User not found for deletion with ID: {}", id);
-            return ResponseEntity.notFound().build();
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 }
