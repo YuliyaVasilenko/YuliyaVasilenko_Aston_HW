@@ -1,9 +1,9 @@
 package com.example.common_models.exception;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.ToString;
+
+import java.time.LocalDateTime;
 
 /**
  * @author YuliyaVasilenko
@@ -12,13 +12,19 @@ import lombok.Setter;
  * Description: This class provides information about data validation errors
  */
 @Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
+@ToString
 public class ValidationError {
 
-    private int statusCode;
+    private final int statusCode;
 
-    private String message;
+    private final String message;
+
+    private final LocalDateTime timestamp;
+
+    public ValidationError(int statusCode, String message) {
+        this.statusCode = statusCode;
+        this.message = message;
+        timestamp = LocalDateTime.now();
+    }
 
 }

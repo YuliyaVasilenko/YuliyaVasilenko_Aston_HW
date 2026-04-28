@@ -1,25 +1,28 @@
 package com.example.user_service.controller;
 
 import com.example.common_models.exception.UserNotFoundException;
+import com.example.common_models.handler.GlobalExceptionHandler;
 import com.example.user_service.dto.UserDTO;
 import com.example.user_service.service.UserService;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.example.user_service.util.UserControllerAssembler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.hateoas.autoconfigure.HypermediaAutoConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import tools.jackson.databind.json.JsonMapper;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -37,12 +40,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Date 11-04-2026
  * Description: тесты для класса UserController
  */
+@ContextConfiguration(classes = {
+        UserController.class,
+        UserControllerAssembler.class,
+        GlobalExceptionHandler.class,
+        HypermediaAutoConfiguration.class
+})
 @WebMvcTest(UserController.class)
 public class UserControllerTest {
 
     private final String TEST_NAME = "TestName";
     private final String TEST_EMAIL = "test@test.ru";
     private final int TEST_AGE = 35;
+    private final Long ID = 1L;
 
     @Autowired
     private MockMvc mockMvc;
@@ -50,49 +60,49 @@ public class UserControllerTest {
     @MockitoBean
     private UserService userService;
 
-    private UserDTO userDTO;
-    private String path;
-    private Long userId;
+    @Autowired
+    private UserControllerAssembler assembler;
 
-    public static MockHttpServletRequestBuilder postJson(String uri, Object body) {
-        try {
-            String json = new ObjectMapper().writeValueAsString(body);
-            return post(uri)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(json);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+    private UserDTO userDTO;
+
+    private String path;
+
+    public MockHttpServletRequestBuilder postJson(String uri, UserDTO body) {
+        String json = new JsonMapper().writeValueAsString(body);
+        return post(uri)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json);
     }
 
-    public static MockHttpServletRequestBuilder putJson(String uri, Object body) {
-        try {
-            String json = new ObjectMapper().writeValueAsString(body);
-            return put(uri)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(json);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+    public MockHttpServletRequestBuilder putJson(String uri, Object body) {
+        String json = new JsonMapper().writeValueAsString(body);
+        return put(uri)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json);
     }
 
     @BeforeEach
     void setUp() {
-        userId = 1L;
         userDTO = new UserDTO(TEST_NAME, TEST_EMAIL, TEST_AGE);
-        path = "/api/users";
+        userDTO.setId(ID);
+        path = "http://localhost/users";
     }
 
     @Test
-    void createUser_Success_ReturnCreatedUser() throws Exception {
+    void createUser_Success_ReturnCreatedWithHalLinks() throws Exception {
         when(userService.createUser(any(UserDTO.class))).thenReturn(userDTO);
 
         mockMvc.perform(postJson(path, userDTO))
                 .andExpect(status().isCreated())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType(MediaType.parseMediaType("application/hal+json")))
+                .andExpect(jsonPath("$.id").value(ID))
                 .andExpect(jsonPath("$.name").value(TEST_NAME))
                 .andExpect(jsonPath("$.email").value(TEST_EMAIL))
-                .andExpect(jsonPath("$.age").value(TEST_AGE));
+                .andExpect(jsonPath("$.age").value(TEST_AGE))
+
+                .andExpect(jsonPath("$._links.self.href").value(path + "/" + ID))
+                .andExpect(jsonPath("$._links.all-users.href").value(path));
+        ;
     }
 
     @Test
@@ -104,98 +114,110 @@ public class UserControllerTest {
     }
 
     @Test
-    void getUserById_Success_ReturnUser() throws Exception {
-        when(userService.findUserById(userId)).thenReturn(Optional.of(userDTO));
+    void getUserById_Success_ReturnUserWithHalLinks() throws Exception {
+        when(userService.findUserById(ID)).thenReturn(Optional.of(userDTO));
 
-        mockMvc.perform(get(path + "/{id}", userId))
+        mockMvc.perform(get(path + "/" + ID))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType(MediaType.parseMediaType("application/hal+json")))
+                .andExpect(jsonPath("$.id").value(ID))
                 .andExpect(jsonPath("$.name").value(TEST_NAME))
                 .andExpect(jsonPath("$.email").value(TEST_EMAIL))
-                .andExpect(jsonPath("$.age").value(TEST_AGE));
+                .andExpect(jsonPath("$.age").value(TEST_AGE))
+
+                .andExpect(jsonPath("$._links.self.href").value(path + "/" + ID))
+                .andExpect(jsonPath("$._links.all-users.href").value(path));
+        ;
     }
 
     @Test
     void getUserById_NotFound_ReturnNotFound() throws Exception {
-        Long userId = 999L;
-        when(userService.findUserById(userId)).thenReturn(Optional.empty());
+        when(userService.findUserById(anyLong())).thenThrow(new UserNotFoundException());
 
-        mockMvc.perform(get(path + "/{id}", userId))
+        mockMvc.perform(get(path + "/" + ID))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    void getAllUsers_Success_ReturnListAllUsers() throws Exception {
+    void getAllUsers_Success_ReturnCollectionWithHalLinks() throws Exception {
         UserDTO userDTO2 = new UserDTO("TestName2", "test2@example.com", 27);
-        List<UserDTO> users = Arrays.asList(userDTO, userDTO2);
+        Long id2 = 2L;
+        userDTO2.setId(id2);
+        List<UserDTO> users = List.of(userDTO, userDTO2);
         when(userService.findAllUsers()).thenReturn(users);
 
         mockMvc.perform(get(path))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(content().contentType(MediaType.parseMediaType("application/hal+json")))
 
-                .andExpect(jsonPath("$[0].name").value(TEST_NAME))
-                .andExpect(jsonPath("$[0].email").value(TEST_EMAIL))
-                .andExpect(jsonPath("$[0].age").value(TEST_AGE))
+                .andExpect(jsonPath("$._embedded.userDTOList[0].id").value(ID))
+                .andExpect(jsonPath("$._embedded.userDTOList[0].name").value(TEST_NAME))
+                .andExpect(jsonPath("$._embedded.userDTOList[0].email").value(TEST_EMAIL))
+                .andExpect(jsonPath("$._embedded.userDTOList[0].age").value(TEST_AGE))
 
-                .andExpect(jsonPath("$[1].name").value("TestName2"))
-                .andExpect(jsonPath("$[1].email").value("test2@example.com"))
-                .andExpect(jsonPath("$[1].age").value(27));
-    }
+                .andExpect(jsonPath("$._embedded.userDTOList[1].id").value(id2))
+                .andExpect(jsonPath("$._embedded.userDTOList[1].name").value("TestName2"))
+                .andExpect(jsonPath("$._embedded.userDTOList[1].email").value("test2@example.com"))
+                .andExpect(jsonPath("$._embedded.userDTOList[1].age").value(27))
 
-    @Test
-    void getAllUsers_NoUsers_ReturnListEmpty() throws Exception {
-        when(userService.findAllUsers()).thenReturn(new ArrayList<>());
-
-        mockMvc.perform(get(path))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$.length()").value(0));
+                .andExpect(jsonPath("$._embedded.userDTOList[1]._links.self.href").value(path + "/" + id2))
+                .andExpect(jsonPath("$._embedded.userDTOList[0]._links.all-users.href").value(path))
+                .andExpect(jsonPath("$._embedded.userDTOList[1]._links.self.href").value(path + "/" + id2))
+                .andExpect(jsonPath("$._embedded.userDTOList[1]._links.all-users.href").value(path));
     }
 
     @Test
     void updateUser_Success_ReturnUpdatedUser() throws Exception {
         UserDTO updatedUser = new UserDTO("Updated Name", "updated@example.com", 25);
+        updatedUser.setId(ID);
 
         when(userService.updateUser(any(Long.class), any(UserDTO.class))).thenReturn(updatedUser);
 
-        mockMvc.perform(putJson(path + "/" + userId, userDTO))
+        mockMvc.perform(putJson(path + "/" + ID, userDTO))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType(MediaType.parseMediaType("application/hal+json")))
                 .andExpect(jsonPath("$.name").value("Updated Name"))
                 .andExpect(jsonPath("$.email").value("updated@example.com"))
-                .andExpect(jsonPath("$.age").value(25));
+                .andExpect(jsonPath("$.age").value(25))
+
+                .andExpect(jsonPath("$._links.self.href").value(path + "/" + ID))
+                .andExpect(jsonPath("$._links.all-users.href").value(path));
     }
 
     @Test
     void updateUser_NotFound_ReturnNotFound() throws Exception {
-        long userId = 999L;
-
-        when(userService.updateUser(any(Long.class), any(UserDTO.class)))
+        when(userService.updateUser(anyLong(), any(UserDTO.class)))
                 .thenThrow(new UserNotFoundException());
 
-        mockMvc.perform(putJson(path + "/" + userId, userDTO))
-                .andExpect(status().isNotFound());
+        mockMvc.perform(putJson(path + "/" + ID, userDTO))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("User not found"));
     }
 
     @Test
     void updateUser_ValidationError_ReturnBadRequest() throws Exception {
         UserDTO invalidDTO = new UserDTO("", "invalid-TEST_EMAIL", -5);
 
-        mockMvc.perform(putJson(path + "/" + userId, invalidDTO))
+        mockMvc.perform(putJson(path + "/" + ID, invalidDTO))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    void deleteUser_ShouldReturnNoContent() throws Exception {
+    void deleteUser_Success_ShouldReturnNoContent() throws Exception {
 
-        mockMvc.perform(delete(path + "/{id}", userId))
+        mockMvc.perform(delete(path + "/" + ID))
                 .andExpect(status().isNoContent());
 
-        verify(userService, times(1)).deleteUser(userId);
+        verify(userService, times(1)).deleteUser(ID);
+    }
+
+    @Test
+    void deleteUser_NotFound_ReturnNotFound() throws Exception {
+        doThrow(new UserNotFoundException()).when(userService).deleteUser(anyLong());
+
+        mockMvc.perform(delete(path + "/" + ID))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("User not found"));
     }
 
 }

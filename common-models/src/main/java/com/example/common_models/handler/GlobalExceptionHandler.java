@@ -5,11 +5,14 @@ import com.example.common_models.exception.ValidationError;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.List;
 
@@ -19,7 +22,8 @@ import java.util.List;
  * Date 10-04-2026
  * Description: Global exception handler for the application that centralizes error handling across the controller
  */
-@ControllerAdvice
+@Order(Ordered.HIGHEST_PRECEDENCE)
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
@@ -42,6 +46,7 @@ public class GlobalExceptionHandler {
                 .map(violation -> {
                     logger.info("Validation violation - Path: {}, Message: {}, Invalid value: {}",
                             violation.getPropertyPath(), violation.getMessage(), violation.getInvalidValue());
+
                     return new ValidationError(HttpStatus.BAD_REQUEST.value(), violation.getMessage());
                 })
                 .toList();
@@ -69,12 +74,32 @@ public class GlobalExceptionHandler {
                 .map(error -> {
                     logger.info("Field validation error - Field: {}, Message: {}, Rejected value: {}",
                             error.getField(), error.getDefaultMessage(), error.getRejectedValue());
-                    return new ValidationError(HttpStatus.BAD_REQUEST.value(), error.getDefaultMessage());
+
+                    return new ValidationError(HttpStatus.BAD_REQUEST.value(),
+                            "field: " + error.getField() + ", message: " + error.getDefaultMessage());
                 })
                 .toList();
 
         logger.warn("Request rejected due to method argument validation errors. Details: {}", validationErrors);
         return new ResponseEntity<>(validationErrors, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * @ Method Name: handleValidationExceptions
+     * @ Description: handles MethodArgumentTypeMismatchException exceptions thrown when method arguments fail type validation
+     * (e.g., String type instead of Long type for ID)
+     * @ param      : [org.springframework.web.method.annotation.MethodArgumentTypeMismatchException]
+     * @ return     : org.springframework.http.ResponseEntity<com.example.common_models.exception.ValidationError>
+     */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ValidationError> handleValidationExceptions(MethodArgumentTypeMismatchException exception) {
+        logger.warn("Method argument type validation failed: MethodArgumentTypeMismatchException caught: {}",
+                exception.getMessage());
+
+        ValidationError validationError = new ValidationError(HttpStatus.BAD_REQUEST.value(), exception.getMessage());
+
+        logger.warn("Request rejected due to method argument type validation errors. Details: {}", validationError);
+        return new ResponseEntity<>(validationError, HttpStatus.BAD_REQUEST);
     }
 
     /**
@@ -85,7 +110,7 @@ public class GlobalExceptionHandler {
      * ResponseEntity with single ValidationError and HTTP status 404 (NOT_FOUND)
      */
     @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<ValidationError> catchResourceNotFoundException(UserNotFoundException exception) {
+    public ResponseEntity<ValidationError> catchUserNotFoundException(UserNotFoundException exception) {
         logger.warn("Resource not found: {}", exception.getMessage());
 
         ValidationError validationError = new ValidationError(HttpStatus.NOT_FOUND.value(), exception.getMessage());

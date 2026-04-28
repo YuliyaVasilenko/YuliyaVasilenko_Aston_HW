@@ -1,10 +1,12 @@
 package com.example.user_service.controller;
 
-import com.example.common_models.exception.UserNotFoundException;
 import com.example.user_service.dto.UserDTO;
 import com.example.user_service.service.UserService;
+import com.example.user_service.util.UserControllerAssembler;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -42,11 +44,11 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
  * Provides endpoints for creating, reading, updating and deleting users.
  * All endpoints return appropriate HTTP status codes and include comprehensive logging for monitoring and debugging purposes.
  */
-@RestController
-@RequestMapping("/api/users")
 @AllArgsConstructor
 @Validated
 @Tag(name = "User Management", description = "API for managing user operations")
+@RestController
+@RequestMapping(path = "/users", produces = "application/hal+json")
 public class UserController {
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
@@ -68,19 +70,24 @@ public class UserController {
             description = "Creates a new user and returns the created UserDTO with fields: " +
                     "name, email, age, date of creation, date of last update",
             responses = {
-                    @ApiResponse(responseCode = "201", description = "User created successfully"),
-                    @ApiResponse(responseCode = "400", description = "Invalid input data")
-
+                    @ApiResponse(responseCode = "201", description = "User created successfully",
+                            content = @Content(schema = @Schema(ref = "#/components/schemas/UserResponse"))),
+                    @ApiResponse(responseCode = "400", description = "Invalid input data",
+                            content = @Content(schema = @Schema(ref = "#/components/schemas/ValidationErrorList")))
             })
     @PostMapping
-    public ResponseEntity<EntityModel<UserDTO>> createUser(@Parameter(description = "UserDTO with fields name, email, age", required = true)
-                                                           @RequestBody @Valid UserDTO userDTO) {
+    public ResponseEntity<EntityModel<UserDTO>> createUser(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "UserDTO with fields name, email, age", required = true,
+                    content = @Content(schema = @Schema(ref = "#/components/schemas/UserRequest")))
+            @RequestBody @Valid UserDTO userDTO) {
         logger.info("Received CREATE user request. Request data: {}", userDTO);
 
         UserDTO createdUser = userService.createUser(userDTO);
 
+        EntityModel<UserDTO> model = assembler.toModel(createdUser);
+
         logger.info("User created successfully. Response: {}, HTTP status: CREATED", createdUser);
-        return ResponseEntity.status(HttpStatus.CREATED).body(assembler.toModel(createdUser));
+        return ResponseEntity.status(HttpStatus.CREATED).body(model);
     }
 
     /**
@@ -94,24 +101,25 @@ public class UserController {
             summary = "Get user by ID",
             description = "Fetches a user by their unique ID",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "User found successfully"),
-                    @ApiResponse(responseCode = "404", description = "User not found")
+                    @ApiResponse(responseCode = "200", description = "User found successfully",
+                            content = @Content(schema = @Schema(ref = "#/components/schemas/UserResponse"))),
+                    @ApiResponse(responseCode = "400", description = "Invalid input data",
+                            content = @Content(schema = @Schema(ref = "#/components/schemas/ValidationErrorList"))),
+                    @ApiResponse(responseCode = "404", description = "User not found",
+                            content = @Content(schema = @Schema(ref = "#/components/schemas/UserNotFound")))
             })
     @GetMapping("/{id}")
     public ResponseEntity<EntityModel<UserDTO>> getUserById(
-            @Parameter(description = "ID of the user to search", example = "1", required = true)
-            @PathVariable("id") @NotNull @Positive Long id) {
+            @Parameter(description = "The user's ID for the search", example = "1", required = true)
+            @PathVariable("id") @Positive Long id) {
         logger.info("Received GET user request for ID: {}", id);
 
-        try {
-            Optional<UserDTO> user = userService.findUserById(id);
+        Optional<UserDTO> user = userService.findUserById(id);
 
-            logger.info("User found successfully. ID: {}, Response: {}", id, user);
-            return ResponseEntity.ok(assembler.toModel(user.get()));
-        } catch (UserNotFoundException e) {
-            logger.warn("User not found with ID: {}", id);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        EntityModel<UserDTO> model = assembler.toModel(user.get());
+
+        logger.info("User found successfully. ID: {}, Response: {}", id, user);
+        return new ResponseEntity<>(model, HttpStatus.OK);
     }
 
     /**
@@ -126,19 +134,14 @@ public class UserController {
             summary = "Get all users",
             description = "Fetches a list of all users",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Successfully fetches list of users"),
-                    @ApiResponse(responseCode = "204", description = "No users have been found")
+                    @ApiResponse(responseCode = "200", description = "Successfully fetches list of users",
+                            content = @Content(schema = @Schema(ref = "#/components/schemas/UserResponse")))
             })
     @GetMapping
     public ResponseEntity<CollectionModel<EntityModel<UserDTO>>> getAllUsers() {
         logger.info("Received GET-ALL users request");
 
         List<UserDTO> users = userService.findAllUsers();
-
-        if (users.isEmpty()) {
-            logger.info("No users found");
-            return ResponseEntity.noContent().build();
-        }
 
         List<EntityModel<UserDTO>> userResources = users.stream()
                 .map(assembler::toModel)
@@ -163,25 +166,29 @@ public class UserController {
             summary = "Update a user",
             description = "Updates an existing user by their unique ID",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "User updated successfully"),
-                    @ApiResponse(responseCode = "400", description = "Invalid input data"),
-                    @ApiResponse(responseCode = "404", description = "User not found")
+                    @ApiResponse(responseCode = "200", description = "User updated successfully",
+                            content = @Content(schema = @Schema(ref = "#/components/schemas/UserResponse"))),
+                    @ApiResponse(responseCode = "400", description = "Invalid input data",
+                            content = @Content(schema = @Schema(ref = "#/components/schemas/ValidationErrorList"))),
+                    @ApiResponse(responseCode = "404", description = "User not found",
+                            content = @Content(schema = @Schema(ref = "#/components/schemas/UserNotFound")))
             })
     @PutMapping("/{id}")
-    public ResponseEntity<EntityModel<UserDTO>> updateUser(@Parameter(description = "ID of the user to update",
-                                                                   example = "1", required = true)
-                                                           @PathVariable("id") @NotNull @Positive Long id,
-                                                           @RequestBody @Valid UserDTO userDTO) {
+    public ResponseEntity<EntityModel<UserDTO>> updateUser(
+            @Parameter(description = "ID of the user to update", example = "1", required = true)
+            @PathVariable("id") @Positive
+            Long id,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "UserDTO with fields name, email, age", required = true,
+                    content = @Content(schema = @Schema(ref = "#/components/schemas/UserRequest")))
+            @RequestBody @Valid UserDTO userDTO) {
         logger.info("Received UPDATE user request for ID: {}. Request data: {}", id, userDTO);
 
-        try {
-            UserDTO updatedUser = userService.updateUser(id, userDTO);
-            logger.info("User updated successfully. ID: {}, Response: {}", id, updatedUser);
-            return ResponseEntity.ok(assembler.toModel(updatedUser));
-        } catch (UserNotFoundException e) {
-            logger.warn("User not found for update with ID: {}. Error: {}", id, e.getMessage());
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        UserDTO updatedUser = userService.updateUser(id, userDTO);
+
+        EntityModel<UserDTO> model = assembler.toModel(updatedUser);
+
+        logger.info("User updated successfully. ID: {}, Response: {}", id, updatedUser);
+        return ResponseEntity.ok(model);
     }
 
     /**
@@ -195,20 +202,18 @@ public class UserController {
             description = "Deletes a user by their unique ID",
             responses = {
                     @ApiResponse(responseCode = "204", description = "User deleted successfully"),
-                    @ApiResponse(responseCode = "404", description = "User not found")
+                    @ApiResponse(responseCode = "404", description = "User not found",
+                            content = @Content(schema = @Schema(ref = "#/components/schemas/UserNotFound")))
             })
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteUser(@Parameter(description = "ID of the user to delete", example = "1", required = true)
-                                        @PathVariable("id") @NotNull @Positive Long id) {
+    public ResponseEntity<?> deleteUser(
+            @Parameter(description = "ID of the user to delete", example = "1", required = true)
+            @PathVariable("id") @NotNull @Positive Long id) {
         logger.info("Received DELETE user request for ID: {}", id);
 
-        try {
-            userService.deleteUser(id);
-            logger.info("User deleted successfully. ID: {}", id);
-            return ResponseEntity.noContent().build();
-        } catch (UserNotFoundException e) {
-            logger.warn("User not found for deletion with ID: {}", id);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        userService.deleteUser(id);
+
+        logger.info("User deleted successfully. ID: {}", id);
+        return ResponseEntity.noContent().build();
     }
 }

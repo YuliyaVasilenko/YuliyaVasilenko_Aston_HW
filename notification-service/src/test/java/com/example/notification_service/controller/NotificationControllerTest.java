@@ -39,7 +39,7 @@ public class NotificationControllerTest {
 
     @BeforeEach
     void setUp() {
-        path = "/api/notifications";
+        path = "/notifications";
     }
 
     @Test

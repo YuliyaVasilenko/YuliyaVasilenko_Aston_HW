@@ -3,6 +3,7 @@ package com.example.user_service.config;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 /**
  * @author YuliyaVasilenko
@@ -10,6 +11,7 @@ import org.springframework.context.annotation.Configuration;
  * Date 10-04-2026
  * Description: Configuration class for the application's Spring context
  */
+@Import(com.example.common_models.handler.GlobalExceptionHandler.class)
 @Configuration
 public class AppConfig {
 

@@ -27,7 +27,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 class NotificationApiIntegrationTest {
 
     private static GreenMail greenMail;
+
     private final RestTemplate restTemplate = new RestTemplate();
+
     @LocalServerPort
     private int port;
 
