@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
  * @author YuliyaVasilenko
  * @version 1.0.0
  * Date 17-04-2026
- * Description: the enum which describes events
+ * Description: the enumeration which describes user events
  */
 @Getter
 @RequiredArgsConstructor

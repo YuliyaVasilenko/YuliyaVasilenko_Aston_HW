@@ -2,8 +2,6 @@ package com.example.user_service.kafka;
 
 import com.example.common_models.event.UserEvent;
 import lombok.Getter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -18,8 +16,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class KafkaProducerService {
 
-    private static final Logger logger = LoggerFactory.getLogger(KafkaProducerService.class);
-
     private final KafkaTemplate<String, UserEvent> kafkaTemplate;
 
     private final String topic;
@@ -30,13 +26,16 @@ public class KafkaProducerService {
         this.topic = topic;
     }
 
+    /**
+     * @ Method Name: sendMessage
+     * @ Description: Sends a message to Kafka with information about user's event and handles the error if something proceeded wrong
+     * @ param      : [com.example.common_models.event.UserEvent]
+     * @ return     : void
+     */
     public void sendMessage(UserEvent userEvent) {
-        logger.info("Received a request to send to Kafka an event: {}", userEvent);
         try {
             kafkaTemplate.send(topic, userEvent).get();
-            logger.info("Sent to Kafka an event: {}", userEvent);
         } catch (Exception exception) {
-            logger.warn("Failed to send to Kafka an event: {}", userEvent);
             throw new RuntimeException();
         }
     }

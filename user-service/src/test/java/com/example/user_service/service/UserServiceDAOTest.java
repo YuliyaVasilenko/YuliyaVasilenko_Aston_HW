@@ -4,7 +4,6 @@ import com.example.common_models.exception.UserNotFoundException;
 import com.example.user_service.BaseIntegrationTest;
 import com.example.user_service.dto.UserDTO;
 import com.example.user_service.kafka.KafkaProducerService;
-import com.example.user_service.model.UserEntity;
 import com.example.user_service.repository.UserRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * @author YuliyaVasilenko
  * @version 1.0.0
  * Date 18-04-2026
- * Description: интеграционные тесты для класса UserService (взаимодействие с базой данных)
+ * Description: integration tests for the UserService class (database interaction)
  */
 public class UserServiceDAOTest extends BaseIntegrationTest {
 
@@ -99,8 +98,8 @@ public class UserServiceDAOTest extends BaseIntegrationTest {
                 .anyMatch(u -> TEST_NAME.equals(u.getName())
                         && TEST_EMAIL.equals(u.getEmail()) && TEST_AGE == u.getAge());
         boolean hasUser2 = result.stream()
-                .anyMatch(u -> "Test2 Name".equals(u.getName())
-                        && "test2@email.com".equals(u.getEmail()) && 35 == u.getAge());
+                .anyMatch(u -> "Test2 Name" .equals(u.getName())
+                        && "test2@email.com" .equals(u.getEmail()) && 35 == u.getAge());
         assertThat(hasUser1).isTrue();
         assertThat(hasUser2).isTrue();
     }

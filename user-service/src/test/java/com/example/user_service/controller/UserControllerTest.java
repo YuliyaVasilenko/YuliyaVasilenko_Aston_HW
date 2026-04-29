@@ -4,7 +4,7 @@ import com.example.common_models.exception.UserNotFoundException;
 import com.example.common_models.handler.GlobalExceptionHandler;
 import com.example.user_service.dto.UserDTO;
 import com.example.user_service.service.UserService;
-import com.example.user_service.util.UserControllerAssembler;
+import com.example.user_service.assembler.UserControllerAssembler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author YuliyaVasilenko
  * @version 1.0.0
  * Date 11-04-2026
- * Description: тесты для класса UserController
+ * Description: tests for the UserController class
  */
 @ContextConfiguration(classes = {
         UserController.class,
@@ -59,9 +59,6 @@ public class UserControllerTest {
 
     @MockitoBean
     private UserService userService;
-
-    @Autowired
-    private UserControllerAssembler assembler;
 
     private UserDTO userDTO;
 
@@ -102,7 +99,6 @@ public class UserControllerTest {
 
                 .andExpect(jsonPath("$._links.self.href").value(path + "/" + ID))
                 .andExpect(jsonPath("$._links.all-users.href").value(path));
-        ;
     }
 
     @Test
@@ -127,7 +123,6 @@ public class UserControllerTest {
 
                 .andExpect(jsonPath("$._links.self.href").value(path + "/" + ID))
                 .andExpect(jsonPath("$._links.all-users.href").value(path));
-        ;
     }
 
     @Test

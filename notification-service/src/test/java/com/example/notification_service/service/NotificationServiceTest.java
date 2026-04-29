@@ -23,19 +23,23 @@ import static org.mockito.Mockito.verify;
  * @author YuliyaVasilenko
  * @version 1.0.0
  * Date 12-04-2026
- * Description: интеграционные тесты для NotificationService и EmailService
+ * Description: integration tests for the NotificationService and EmailService
  */
 @SpringBootTest
 public class NotificationServiceTest {
 
     private final ArgumentCaptor<SimpleMailMessage> messageCaptor
             = ArgumentCaptor.forClass(SimpleMailMessage.class);
+
     private final String email = "test@example.com";
     private final String subject = "Notification";
+
     @Autowired
     private NotificationService notificationService;
+
     @MockitoSpyBean
     private EmailService emailService;
+
     @MockitoBean
     private JavaMailSender mailSender;
 

@@ -20,7 +20,7 @@ import java.util.List;
  * @author YuliyaVasilenko
  * @version 1.0.0
  * Date 10-04-2026
- * Description: Global exception handler for the application that centralizes error handling across the controller
+ * Description: Global exception handler that centralizes error handling for the application
  */
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @RestControllerAdvice
@@ -33,7 +33,7 @@ public class GlobalExceptionHandler {
      * @ Description: handles ConstraintViolationException exceptions thrown during bean validation
      * (e.g., in @PathVariable @NotNull parameters)
      * @ param      : [jakarta.validation.ConstraintViolationException]
-     * @ return     : org.springframework.http.ResponseEntity<java.util.List<com.example.user_service.exception.ValidationError>>;
+     * @ return     : org.springframework.http.ResponseEntity<java.aspects.List<com.example.user_service.exception.ValidationError>>;
      * ResponseEntity with list of ValidationError and HTTP status 400 (BAD_REQUEST)
      */
     @ExceptionHandler(ConstraintViolationException.class)
@@ -60,7 +60,7 @@ public class GlobalExceptionHandler {
      * @ Description: handles MethodArgumentNotValidException exceptions thrown when method arguments fail validation
      * (e.g., in @RequestBody parameters)
      * @ param      : [org.springframework.web.bind.MethodArgumentNotValidException]
-     * @ return     : org.springframework.http.ResponseEntity<java.util.List<com.example.user_service.exception.ValidationError>>;
+     * @ return     : org.springframework.http.ResponseEntity<java.aspects.List<com.example.user_service.exception.ValidationError>>;
      * ResponseEntity with list of ValidationError and HTTP status 400 (BAD_REQUEST)
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -89,7 +89,8 @@ public class GlobalExceptionHandler {
      * @ Description: handles MethodArgumentTypeMismatchException exceptions thrown when method arguments fail type validation
      * (e.g., String type instead of Long type for ID)
      * @ param      : [org.springframework.web.method.annotation.MethodArgumentTypeMismatchException]
-     * @ return     : org.springframework.http.ResponseEntity<com.example.common_models.exception.ValidationError>
+     * @ return     : org.springframework.http.ResponseEntity<com.example.common_models.exception.ValidationError>;
+     * ResponseEntity with single ValidationError and HTTP status 400 (BAD_REQUEST)
      */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ValidationError> handleValidationExceptions(MethodArgumentTypeMismatchException exception) {
@@ -103,7 +104,7 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * @ Method Name: catchResourceNotFoundException
+     * @ Method Name: catchUserNotFoundException
      * @ Description: handles UserNotFoundException exceptions when a requested resource is not found
      * @ param      : [com.example.user_service.exception.UserNotFoundException]
      * @ return     : org.springframework.http.ResponseEntity<com.example.user_service.exception.ValidationError>;

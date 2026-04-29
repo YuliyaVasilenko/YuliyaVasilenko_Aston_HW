@@ -2,7 +2,6 @@ package com.example.user_service.service;
 
 import com.example.common_models.handler.GlobalExceptionHandler;
 import com.example.user_service.BaseIntegrationTest;
-import com.example.user_service.util.UserControllerAssembler;
 import com.example.user_service.dto.UserDTO;
 import com.example.user_service.repository.UserRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -29,13 +28,13 @@ import static org.junit.jupiter.api.Assertions.fail;
  * @author YuliyaVasilenko
  * @version 1.0.0
  * Date 12-04-2026
- * Description: интеграционные тесты для проверки работы всех компонентов:
+ * Description: integration tests to verify the operation of all components:
  * UserController, UserRepository, KafkaProducerService, UserService
  */
 @Import({HypermediaAutoConfiguration.class, GlobalExceptionHandler.class})
 public class UserApiIntegrationTest extends BaseIntegrationTest {
 
-    private RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate = new RestTemplate();
 
     private final String TEST_NAME = "TestName";
     private final String TEST_EMAIL = "test@test.ru";
@@ -46,9 +45,6 @@ public class UserApiIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     KafkaConsumer kafkaConsumer;
-
-    @Autowired
-    private UserControllerAssembler assembler;
 
     @LocalServerPort
     private int port;

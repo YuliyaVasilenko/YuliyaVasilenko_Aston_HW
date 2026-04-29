@@ -1,8 +1,6 @@
 package com.example.notification_service.service;
 
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -13,17 +11,20 @@ import org.springframework.stereotype.Service;
  * Date 17-04-2026
  * Description: the service for sending emails
  */
-@Service
 @RequiredArgsConstructor
+@Service
 public class EmailService {
 
-    private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
 
     private final JavaMailSender mailSender;
 
+    /**
+     * @ Method Name: send
+     * @ Description: sends an email message
+     * @ param      : [java.lang.String, java.lang.String, java.lang.String]
+     * @ return     : void
+     */
     public void send(String email, String subject, String text) {
-        logger.info("Sending email to email={}, text={}", email, text);
-
         SimpleMailMessage message = new SimpleMailMessage();
 
         message.setTo(email);
