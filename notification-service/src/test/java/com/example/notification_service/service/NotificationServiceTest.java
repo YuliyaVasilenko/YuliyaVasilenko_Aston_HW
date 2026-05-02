@@ -7,9 +7,12 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
@@ -25,6 +28,8 @@ import static org.mockito.Mockito.verify;
  * Date 12-04-2026
  * Description: integration tests for the NotificationService and EmailService
  */
+@ActiveProfiles("test")
+@TestPropertySource(properties = {"management.health.mail.enabled=false"})
 @SpringBootTest
 public class NotificationServiceTest {
 
@@ -32,7 +37,9 @@ public class NotificationServiceTest {
             = ArgumentCaptor.forClass(SimpleMailMessage.class);
 
     private final String email = "test@example.com";
-    private final String subject = "Notification";
+
+    @Value("${app.mail.subject}")
+    private String subject;
 
     @Autowired
     private NotificationService notificationService;
@@ -81,6 +88,6 @@ public class NotificationServiceTest {
         assertEquals(email, message.getTo()[0]);
         assertEquals(subject, message.getSubject());
         assertNotNull(message.getText());
-        assertTrue(message.getText().contains("Ваш аккаунт был удалён"));
+        assertTrue(message.getText().contains(operation.getMessage()));
     }
 }

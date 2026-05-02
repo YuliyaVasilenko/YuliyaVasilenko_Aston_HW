@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
@@ -33,6 +34,7 @@ import static org.mockito.Mockito.when;
  * Date 19-04-2026
  * Description: integration tests for the UserService class (interaction with Kafka)
  */
+@ActiveProfiles("test")
 public class UserServiceKafkaTest extends BaseIntegrationTest {
 
     private final String TEST_EMAIL = "test@email.com";

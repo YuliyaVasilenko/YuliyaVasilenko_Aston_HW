@@ -8,6 +8,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.hateoas.autoconfigure.HypermediaAutoConfiguration;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
@@ -16,6 +17,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
@@ -31,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.fail;
  * Description: integration tests to verify the operation of all components:
  * UserController, UserRepository, KafkaProducerService, UserService
  */
+@ActiveProfiles("test")
 @Import({HypermediaAutoConfiguration.class, GlobalExceptionHandler.class})
 public class UserApiIntegrationTest extends BaseIntegrationTest {
 
@@ -49,6 +52,9 @@ public class UserApiIntegrationTest extends BaseIntegrationTest {
     @LocalServerPort
     private int port;
 
+    @Value("${server.servlet.context-path}")
+    private String contextPath;
+
     private ResponseEntity<UserDTO> response;
 
     private UserDTO userDTO;
@@ -58,7 +64,7 @@ public class UserApiIntegrationTest extends BaseIntegrationTest {
     @BeforeEach
     void setUp() {
         userDTO = new UserDTO(TEST_NAME, TEST_EMAIL, TEST_AGE);
-        path = "http://localhost:" + port + "/api/users";
+        path = "http://localhost:" + port + "/" + contextPath + "/users";
     }
 
     @AfterEach

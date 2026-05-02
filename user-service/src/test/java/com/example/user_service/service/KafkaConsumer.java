@@ -4,6 +4,7 @@ import com.example.common_models.event.UserEvent;
 import lombok.Getter;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.concurrent.CountDownLatch;
 
@@ -13,6 +14,7 @@ import java.util.concurrent.CountDownLatch;
  * Date 22-04-2026
  * Description: utility consumer class for integration tests for the UserService class (interaction with Kafka)
  */
+@ActiveProfiles("test")
 @Getter
 @Component
 public class KafkaConsumer {

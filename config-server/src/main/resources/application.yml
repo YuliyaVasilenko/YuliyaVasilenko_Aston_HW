@@ -1,0 +1,15 @@
+server:
+  port: 8888
+
+spring:
+  application:
+    name: config-server
+
+  cloud:
+    config:
+      server:
+        git:
+          uri: git@github.com:YuliyaVasilenko/UserServiceProjectConfigs.git
+          private-key: file:.src/main/resources/ssh/config-server-key
+          default-label: master
+          search-paths: /{application}
