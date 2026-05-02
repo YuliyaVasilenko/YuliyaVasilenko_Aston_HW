@@ -82,11 +82,6 @@ public class Resilience4JConfig {
                     .timeoutDuration(Duration.ofSeconds(3))
                     .build();
 
-            factory.configureDefault(id -> new Resilience4JConfigBuilder(id)
-                    .circuitBreakerConfig(userServiceConfig)
-                    .timeLimiterConfig(userServiceTimeLimiter)
-                    .build());
-
             factory.configure(builder -> builder
                     .circuitBreakerConfig(userServiceConfig)
                     .timeLimiterConfig(userServiceTimeLimiter)

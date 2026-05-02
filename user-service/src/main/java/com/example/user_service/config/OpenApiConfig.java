@@ -7,12 +7,12 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.media.ArraySchema;
+import io.swagger.v3.oas.models.media.DateTimeSchema;
 import io.swagger.v3.oas.models.media.Schema;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.hateoas.config.EnableHypermediaSupport;
 
-import java.time.LocalDateTime;
 import java.util.Map;
 
 /**
@@ -33,7 +33,7 @@ public class OpenApiConfig {
      */
     @Bean
     public OpenAPI customOpenAPI() {
-        Schema<LocalDateTime> localDateTimeSchema = new Schema<LocalDateTime>()
+        DateTimeSchema localDateTimeSchema = (DateTimeSchema) new DateTimeSchema()
                 .type("string").format("date-time").example("2026-04-27T16:48:53.665Z");
 
         Components components = new Components()
