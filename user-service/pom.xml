@@ -17,7 +17,6 @@
     <properties>
         <java.version>21</java.version>
         <commons.version>1.0.0</commons.version>
-
         <modelmapper.version>3.1.1</modelmapper.version>
         <postgresql.version>42.7.10</postgresql.version>
         <openapi.version>3.0.3</openapi.version>
@@ -126,6 +125,7 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-config</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>

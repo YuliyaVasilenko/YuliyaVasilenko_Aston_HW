@@ -43,7 +43,6 @@ public class NotificationServiceKafkaTest extends BaseIntegrationTest {
     @Test
     void consumeUserEvent_WhenMessageReceived_ShouldProcessEvent() {
         UserEvent event = new UserEvent(UserOperation.CREATE, "test@email.com");
-        System.out.println("TOPIC=" + topicName);
 
         kafkaTemplate.send(topicName, event);
 

@@ -25,7 +25,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author YuliyaVasilenko
  * @version 1.0.0
  * Date 18-04-2026
- * Description: integration tests to verify the operation and interaction of NotificationController, NotificationService, EmailService
+ * Description: integration tests to verify the operation and interaction of
+ * NotificationController, NotificationService, EmailService
  */
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)

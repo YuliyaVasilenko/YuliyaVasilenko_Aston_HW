@@ -80,8 +80,9 @@ public class LoggingAspect {
      * @ return     : java.lang.Object
      */
     @Around("within(com.example.user_service.assembler.UserControllerAssembler) || " +
-            "within(com.example.user_service.repository.UserRepository)")
-    public Object logDebud(ProceedingJoinPoint joinPoint) throws Throwable {
+            "within(com.example.user_service.repository.UserRepository) || " +
+            "bean(modelMapper)")
+    public Object logDebug(ProceedingJoinPoint joinPoint) throws Throwable {
         String className = joinPoint.getSignature().getDeclaringTypeName();
         String methodName = joinPoint.getSignature().getName();
 
