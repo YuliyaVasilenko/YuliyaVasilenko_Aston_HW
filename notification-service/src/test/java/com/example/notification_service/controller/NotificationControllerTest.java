@@ -24,7 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author YuliyaVasilenko
  * @version 1.0.0
  * Date 20-04-2026
- * Description: тесты для класса NotificationController
+ * Description: tests for the NotificationController class
  */
 @WebMvcTest(NotificationController.class)
 public class NotificationControllerTest {
@@ -39,7 +39,7 @@ public class NotificationControllerTest {
 
     @BeforeEach
     void setUp() {
-        path = "/api/notifications";
+        path = "/notifications";
     }
 
     @Test

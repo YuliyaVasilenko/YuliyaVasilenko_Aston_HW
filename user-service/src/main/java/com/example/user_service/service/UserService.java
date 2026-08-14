@@ -22,11 +22,12 @@ import java.util.stream.Collectors;
  * @author YuliyaVasilenko
  * @version 1.0.0
  * Date 10-04-2026
- * Description: This is service class for managing user-related business logic with transactional operations
+ * Description: This is a service class for managing user-related business logic
+ * and linking it to other components, such as repository for transactional operations and Kafka service
  */
-@Service
-@Transactional
 @AllArgsConstructor
+@Transactional
+@Service
 public class UserService {
 
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
@@ -44,19 +45,17 @@ public class UserService {
      * @ return     : com.example.user_service.dto.UserDTO
      */
     public UserDTO createUser(UserDTO userDTO) {
-        logger.info("Starting user creation. Request data: {}", userDTO);
-
         UserEntity userEntity = modelMapper.map(userDTO, UserEntity.class);
         logger.debug("Mapped DTO to entity: {}", userEntity);
 
         UserEntity savedUser = userRepository.save(userEntity);
-        logger.info("User saved to database with ID: {}", savedUser.getId());
 
+        logger.info("Sending to Kafka an event: {}, to email: {}", UserOperation.CREATE, savedUser.getEmail());
         kafkaProducerService.sendMessage(new UserEvent(UserOperation.CREATE, savedUser.getEmail()));
-        logger.info("Sent to Kafka an event: {}, to email: {}", UserOperation.CREATE, savedUser.getEmail());
+        logger.info("Sent successfully to Kafka an event: {}, to email: {}", UserOperation.CREATE, savedUser.getEmail());
 
         UserDTO response = modelMapper.map(savedUser, UserDTO.class);
-        logger.debug("Mapped entity to response DTO: {}", response);
+        logger.debug("Mapped entity to DTO: {}", response);
 
         return response;
     }
@@ -65,21 +64,14 @@ public class UserService {
      * @ Method Name: findUserById
      * @ Description: searching for the user by the unique field ID
      * @ param      : [java.lang.Long]
-     * @ return     : java.util.Optional<com.example.user_service.dto.UserDTO>
+     * @ return     : java.aspects.Optional<com.example.user_service.dto.UserDTO>
      */
     @Transactional(readOnly = true)
     public Optional<UserDTO> findUserById(Long id) throws UserNotFoundException {
-        logger.info("Fetching user by ID: {}", id);
-
-        UserEntity userEntity = userRepository.findById(id).orElseThrow(() -> {
-            logger.warn("User not found with ID: {}", id);
-            return new UserNotFoundException();
-        });
-
-        logger.info("User found: {}", userEntity);
+        UserEntity userEntity = userRepository.findById(id).orElseThrow(UserNotFoundException::new);
 
         UserDTO response = modelMapper.map(userEntity, UserDTO.class);
-        logger.debug("Successfully mapped user entity to DTO for ID: {}", id);
+        logger.debug("Mapped entity to DTO: {}", response);
 
         return Optional.of(response);
     }
@@ -89,19 +81,14 @@ public class UserService {
      * @ Method Name: findAllUsers
      * @ Description: searching for all users
      * @ param      : []
-     * @ return     : java.util.List<com.example.user_service.dto.UserDTO>
+     * @ return     : java.aspects.List<com.example.user_service.dto.UserDTO>
      */
     @Transactional(readOnly = true)
     public List<UserDTO> findAllUsers() {
-        logger.info("Fetching all users from database");
-
-        List<UserDTO> users = userRepository.findAll()
+        return userRepository.findAll()
                 .stream()
                 .map(userEntity -> modelMapper.map(userEntity, UserDTO.class))
                 .collect(Collectors.toList());
-
-        logger.info("Successfully fetched {} users from database", users.size());
-        return users;
     }
 
     /**
@@ -112,13 +99,8 @@ public class UserService {
      * @ return     : com.example.user_service.dto.UserDTO
      */
     public UserDTO updateUser(Long id, UserDTO userDTO) throws UserNotFoundException {
-        logger.info("Starting user update for ID: {}. Update data: {}", id, userDTO);
-
         UserEntity existingUser = userRepository.findById(id)
-                .orElseThrow(() -> {
-                    logger.warn("Attempt to update non-existent user with ID: {}", id);
-                    return new UserNotFoundException();
-                });
+                .orElseThrow(UserNotFoundException::new);
 
         logger.debug("Updated userEntity fields, old value: Name={}, Email={}, Age={}",
                 existingUser.getName(), existingUser.getEmail(), existingUser.getAge());
@@ -129,10 +111,10 @@ public class UserService {
                 existingUser.getName(), existingUser.getEmail(), existingUser.getAge());
 
         UserEntity updatedUser = userRepository.save(existingUser);
-        logger.info("User updated successfully. ID: {}", updatedUser.getId());
 
         UserDTO response = modelMapper.map(updatedUser, UserDTO.class);
         logger.debug("Mapped updated entity to response DTO: {}", response);
+
         return response;
     }
 
@@ -144,19 +126,18 @@ public class UserService {
      * @ return     : void
      */
     public void deleteUser(Long id) throws UserNotFoundException {
-        logger.info("Starting user deletion for ID: {}", id);
-
         if (!userRepository.existsById(id)) {
-            logger.warn("Attempt to delete non-existent user with ID: {}", id);
             throw new UserNotFoundException();
         }
 
         String email = userRepository.findById(id).map(UserEntity::getEmail).orElseThrow();
-        System.out.println(email);
+        logger.debug("Found user with email: {}", email);
+
         userRepository.deleteById(id);
 
+        logger.info("Sending to Kafka an event: {}, to email: {}", UserOperation.DELETE, email);
         kafkaProducerService.sendMessage(new UserEvent(UserOperation.DELETE, email));
-        logger.info("User successfully deleted with ID: {}", id);
+        logger.info("Sent successfully to Kafka an event: {}, to email: {}", UserOperation.DELETE, email);
     }
 
 }

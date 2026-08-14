@@ -21,13 +21,15 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author YuliyaVasilenko
  * @version 1.0.0
  * Date 18-04-2026
- * Description: интеграционные тесты для проверки работы NotificationController, NotificationService, EmailService
+ * Description: integration tests to verify the operation and interaction of NotificationController, NotificationService, EmailService
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class NotificationApiIntegrationTest {
 
     private static GreenMail greenMail;
+
     private final RestTemplate restTemplate = new RestTemplate();
+
     @LocalServerPort
     private int port;
 

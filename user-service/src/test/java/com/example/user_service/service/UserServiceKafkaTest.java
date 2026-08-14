@@ -31,7 +31,7 @@ import static org.mockito.Mockito.when;
  * @author YuliyaVasilenko
  * @version 1.0.0
  * Date 19-04-2026
- * Description: интеграционные тесты для класса UserService (взаимодействие с Kafka)
+ * Description: integration tests for the UserService class (interaction with Kafka)
  */
 public class UserServiceKafkaTest extends BaseIntegrationTest {
 
@@ -53,7 +53,9 @@ public class UserServiceKafkaTest extends BaseIntegrationTest {
     private KafkaConsumer consumer;
 
     private UserEvent expectedEvent;
+
     private UserDTO userDTO;
+
     private UserEntity userEntity;
 
     @BeforeEach

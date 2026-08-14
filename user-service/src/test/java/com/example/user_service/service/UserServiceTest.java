@@ -37,7 +37,7 @@ import static org.mockito.Mockito.when;
  * @author YuliyaVasilenko
  * @version 1.0.0
  * Date 12-04-2026
- * Description: тесты для класса UserService
+ * Description: tests for the UserService class
  */
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {

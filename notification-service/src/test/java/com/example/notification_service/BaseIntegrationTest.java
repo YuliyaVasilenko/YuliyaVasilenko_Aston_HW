@@ -10,7 +10,7 @@ import org.testcontainers.utility.DockerImageName;
  * @author YuliyaVasilenko
  * @version 1.0.0
  * Date 24-04-2026
- * Description: базовый тестовый класс для запуска контейнеров
+ * Description: the basic test class for configure and running testcontainers
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public abstract class BaseIntegrationTest {
@@ -28,11 +28,11 @@ public abstract class BaseIntegrationTest {
         registry.add("spring.kafka.producer.key-serializer",
                 () -> "org.apache.kafka.common.serialization.StringSerializer");
         registry.add("spring.kafka.producer.value-serializer",
-                () -> "org.springframework.kafka.support.serializer.JsonSerializer");
+                () -> "org.springframework.kafka.support.serializer.JacksonJsonSerializer");
         registry.add("spring.kafka.consumer.key-deserializer",
                 () -> "org.apache.kafka.common.serialization.StringDeserializer");
         registry.add("spring.kafka.consumer.value-deserializer",
-                () -> "org.springframework.kafka.support.serializer.JsonDeserializer");
+                () -> "org.springframework.kafka.support.serializer.JacksonJsonDeserializer");
 
         registry.add("spring.kafka.consumer.properties.spring.json.value.default.type",
                 () -> "com.example.common_models.event.UserEvent");

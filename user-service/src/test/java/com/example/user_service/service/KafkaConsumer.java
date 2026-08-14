@@ -11,7 +11,7 @@ import java.util.concurrent.CountDownLatch;
  * @author YuliyaVasilenko
  * @version 1.0.0
  * Date 22-04-2026
- * Description: вспомогательный класс консьюмера для интеграционных тестов для класса UserService (взаимодействие с Kafka)
+ * Description: utility consumer class for integration tests for the UserService class (interaction with Kafka)
  */
 @Getter
 @Component

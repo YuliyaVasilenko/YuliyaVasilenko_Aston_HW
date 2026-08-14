@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import java.util.concurrent.TimeUnit;
 
@@ -21,16 +22,19 @@ import static org.mockito.Mockito.verify;
  * @author YuliyaVasilenko
  * @version 1.0.0
  * Date 24-04-2026
- * Description: интеграционные тесты для класса NotificationService (получение события из Kafka)
+ * Description: integration tests for the NotificationService class (interaction with Kafka)
  */
 public class NotificationServiceKafkaTest extends BaseIntegrationTest {
 
     @Autowired
     KafkaTemplate<String, UserEvent> kafkaTemplate;
-    @Autowired
+
+    @MockitoSpyBean
     private UserEventConsumer consumer;
+
     @MockitoBean
     private NotificationService notificationService;
+
     @Value("${app.kafka.user-events-topic}")
     private String topicName;
 
@@ -40,8 +44,10 @@ public class NotificationServiceKafkaTest extends BaseIntegrationTest {
 
         kafkaTemplate.send(topicName, event);
 
-        await().atMost(5, TimeUnit.SECONDS).untilAsserted(() ->
-                verify(notificationService, times(1)).processUserEvent(event)
+        await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
+                    verify(consumer, times(1)).consumeUserEvent(event);
+                    verify(notificationService, times(1)).processUserEvent(event);
+                }
         );
     }
 }
