@@ -31,9 +31,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
-
 /**
  * @author YuliyaVasilenko
  * @version 1.0.0
@@ -138,9 +135,7 @@ public class UserController {
                 .map(assembler::toModel)
                 .collect(Collectors.toList());
 
-        CollectionModel<EntityModel<UserDTO>> collectionModel = CollectionModel.of(userResources);
-        collectionModel.add(linkTo(methodOn(UserController.class).getAllUsers()).withSelfRel());
-        collectionModel.add(linkTo(methodOn(UserController.class).createUser(new UserDTO())).withRel("create"));
+        CollectionModel<EntityModel<UserDTO>> collectionModel = assembler.toCollectionModel(userResources);
 
         return ResponseEntity.ok(collectionModel);
     }

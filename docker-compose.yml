@@ -2,24 +2,33 @@ services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.7.8
     container_name: zookeeper
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
     ports:
       - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    networks:
+      - microservice-network
 
   kafka:
     image: confluentinc/cp-kafka:7.7.8
     container_name: kafka
-    depends_on:
-      - zookeeper
     ports:
       - "9092:9092"
+    depends_on:
+      - zookeeper
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "localhost", "9092" ]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    networks:
+      - microservice-network
 
   mailhog:
     image: mailhog/mailhog
@@ -27,3 +36,134 @@ services:
     ports:
       - "1025:1025"
       - "8025:8025"
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "localhost", "8025" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - microservice-network
+
+  postgres:
+    image: postgres:15
+    container_name: postgres-db
+    ports:
+      - "5432:5432"
+    env_file:
+      - database.env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready -U postgres -d postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - microservice-network
+
+  config-server:
+    build: ./config-server
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    environment:
+      SPRING_CLOUD_CONFIG_SERVER_GIT_URI: git@github.com:YuliyaVasilenko/UserServiceProjectConfigs.git
+      SPRING_CLOUD_CONFIG_SERVER_GIT_PRIVATE_KEY: file:/root/.ssh/id_rsa
+      SPRING_CLOUD_CONFIG_SERVER_GIT_DEFAULT_LABEL: master
+      SPRING_CLOUD_CONFIG_SERVER_GIT_SEARCH_PATHS: /{application}
+    volumes:
+      - ./config-server/src/main/resources/ssh/config-server-key:/root/.ssh/id_rsa:ro
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8888/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - microservice-network
+
+  discovery-service:
+    build: ./discovery-service
+    container_name: discovery-service
+    ports:
+      - "8761:8761"
+    depends_on:
+      config-server:
+        condition: service_healthy
+    environment:
+      CONFIG_SERVER_URI: http://config-server:8888
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8761/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - microservice-network
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8088:8088"
+    depends_on:
+      config-server:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+    environment:
+      CONFIG_SERVER_URI: http://config-server:8888
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://discovery-service:8761/eureka/
+    networks:
+      - microservice-network
+
+  user-service:
+    build: ./user-service
+    container_name: user-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      config-server:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      CONFIG_SERVER_URI: http://config-server:8888
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://discovery-service:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/postgres
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    networks:
+      - microservice-network
+
+  notification-service:
+    build: ./notification-service
+    container_name: notification-service
+    ports:
+      - "8082:8082"
+    depends_on:
+      config-server:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      mailhog:
+        condition: service_healthy
+    environment:
+      CONFIG_SERVER_URI: http://config-server:8888
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://discovery-service:8761/eureka/
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_MAIL_HOST: mailhog
+      SPRING_MAIL_PORT: 1025
+    networks:
+      - microservice-network
+
+volumes:
+  postgres_data:
+
+networks:
+  microservice-network:
+    driver: bridge

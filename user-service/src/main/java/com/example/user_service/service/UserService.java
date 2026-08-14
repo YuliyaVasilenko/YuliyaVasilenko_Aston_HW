@@ -7,10 +7,8 @@ import com.example.user_service.dto.UserDTO;
 import com.example.user_service.kafka.KafkaProducerService;
 import com.example.user_service.model.UserEntity;
 import com.example.user_service.repository.UserRepository;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,12 +23,10 @@ import java.util.stream.Collectors;
  * Description: This is a service class for managing user-related business logic
  * and linking it to other components, such as repository for transactional operations and Kafka service
  */
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Transactional
 @Service
 public class UserService {
-
-    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     private final UserRepository userRepository;
 
@@ -46,16 +42,12 @@ public class UserService {
      */
     public UserDTO createUser(UserDTO userDTO) {
         UserEntity userEntity = modelMapper.map(userDTO, UserEntity.class);
-        logger.debug("Mapped DTO to entity: {}", userEntity);
 
         UserEntity savedUser = userRepository.save(userEntity);
 
         kafkaProducerService.sendMessage(new UserEvent(UserOperation.CREATE, savedUser.getEmail()));
 
-        UserDTO response = modelMapper.map(savedUser, UserDTO.class);
-        logger.debug("Mapped entity to DTO: {}", response);
-
-        return response;
+        return modelMapper.map(savedUser, UserDTO.class);
     }
 
     /**
@@ -69,7 +61,6 @@ public class UserService {
         UserEntity userEntity = userRepository.findById(id).orElseThrow(UserNotFoundException::new);
 
         UserDTO response = modelMapper.map(userEntity, UserDTO.class);
-        logger.debug("Mapped entity to DTO: {}", response);
 
         return Optional.of(response);
     }
@@ -85,12 +76,7 @@ public class UserService {
     public List<UserDTO> findAllUsers() {
         return userRepository.findAll()
                 .stream()
-                .map(userEntity -> {
-                    UserDTO userDTO = modelMapper.map(userEntity, UserDTO.class);
-                    logger.debug("Mapped entity to DTO: {}", userDTO);
-
-                    return userDTO;
-                })
+                .map(userEntity -> modelMapper.map(userEntity, UserDTO.class))
                 .collect(Collectors.toList());
     }
 
@@ -105,20 +91,13 @@ public class UserService {
         UserEntity existingUser = userRepository.findById(id)
                 .orElseThrow(UserNotFoundException::new);
 
-        logger.debug("Updated userEntity fields, old value: Name={}, Email={}, Age={}",
-                existingUser.getName(), existingUser.getEmail(), existingUser.getAge());
         if (userDTO.getName() != null) existingUser.setName(userDTO.getName());
         if (userDTO.getEmail() != null) existingUser.setEmail(userDTO.getEmail());
         if (userDTO.getAge() != null && userDTO.getAge() > 0) existingUser.setAge(userDTO.getAge());
-        logger.debug("Updated userEntity fields, new value: Name={}, Email={}, Age={}",
-                existingUser.getName(), existingUser.getEmail(), existingUser.getAge());
 
         UserEntity updatedUser = userRepository.save(existingUser);
 
-        UserDTO response = modelMapper.map(updatedUser, UserDTO.class);
-        logger.debug("Mapped updated entity to response DTO: {}", response);
-
-        return response;
+        return modelMapper.map(updatedUser, UserDTO.class);
     }
 
     /**
@@ -134,7 +113,6 @@ public class UserService {
         }
 
         String email = userRepository.findById(id).map(UserEntity::getEmail).orElseThrow();
-        logger.debug("Found user with email: {}", email);
 
         userRepository.deleteById(id);
 

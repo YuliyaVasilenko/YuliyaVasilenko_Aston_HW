@@ -1,28 +1,13 @@
-server:
-  port: 8761
-
 spring:
   application:
     name: discovery-service
 
-eureka:
-  server:
-    wait-time-in-ms-when-sync-empty: 0
+  config:
+    import: optional:configserver:${CONFIG_SERVER_URI:http://localhost:8888}
 
-  instance:
-    hostname: localhost
-    prefer-ip-address: false
-
-
-logging:
-  level:
-    com.netflix.eureka: WARN
-    com.netflix.discovery: ERROR
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health, info, eureka
-
-
+  cloud:
+    config:
+      fail-fast: false
+      retry:
+        max-attempts: 3
+        initial-interval: 1000

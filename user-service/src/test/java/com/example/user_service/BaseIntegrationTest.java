@@ -29,7 +29,6 @@ public abstract class BaseIntegrationTest {
 
     static {
         kafka.start();
-        System.out.println("KAFKA=" + kafka.getBootstrapServers());
         postgres.start();
     }
 
