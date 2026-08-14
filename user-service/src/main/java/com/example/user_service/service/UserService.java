@@ -50,9 +50,7 @@ public class UserService {
 
         UserEntity savedUser = userRepository.save(userEntity);
 
-        logger.info("Sending to Kafka an event: {}, to email: {}", UserOperation.CREATE, savedUser.getEmail());
         kafkaProducerService.sendMessage(new UserEvent(UserOperation.CREATE, savedUser.getEmail()));
-        logger.info("Sent successfully to Kafka an event: {}, to email: {}", UserOperation.CREATE, savedUser.getEmail());
 
         UserDTO response = modelMapper.map(savedUser, UserDTO.class);
         logger.debug("Mapped entity to DTO: {}", response);
@@ -87,7 +85,12 @@ public class UserService {
     public List<UserDTO> findAllUsers() {
         return userRepository.findAll()
                 .stream()
-                .map(userEntity -> modelMapper.map(userEntity, UserDTO.class))
+                .map(userEntity -> {
+                    UserDTO userDTO = modelMapper.map(userEntity, UserDTO.class);
+                    logger.debug("Mapped entity to DTO: {}", userDTO);
+
+                    return userDTO;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -135,9 +138,7 @@ public class UserService {
 
         userRepository.deleteById(id);
 
-        logger.info("Sending to Kafka an event: {}, to email: {}", UserOperation.DELETE, email);
         kafkaProducerService.sendMessage(new UserEvent(UserOperation.DELETE, email));
-        logger.info("Sent successfully to Kafka an event: {}, to email: {}", UserOperation.DELETE, email);
     }
 
 }

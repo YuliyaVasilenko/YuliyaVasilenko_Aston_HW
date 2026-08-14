@@ -1,4 +1,5 @@
 HELP.md
+config-server-key
 *.log
 logs/
 .gitattributes

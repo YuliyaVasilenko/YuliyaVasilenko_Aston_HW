@@ -1,5 +1,6 @@
 package com.example.notification_service.service;
 
+import com.example.common_models.event.UserOperation;
 import com.icegreen.greenmail.util.GreenMail;
 import com.icegreen.greenmail.util.ServerSetup;
 import jakarta.mail.internet.MimeMessage;
@@ -7,15 +8,18 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.web.client.RestTemplate;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author YuliyaVasilenko
@@ -23,6 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Date 18-04-2026
  * Description: integration tests to verify the operation and interaction of NotificationController, NotificationService, EmailService
  */
+@ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class NotificationApiIntegrationTest {
 
@@ -32,6 +37,15 @@ class NotificationApiIntegrationTest {
 
     @LocalServerPort
     private int port;
+
+    @Value("${server.servlet.context-path}")
+    private String contextPath;
+
+    @Value("${spring.mail.host}")
+    private String mailHost;
+
+    @Value("${app.mail.subject}")
+    private String subject;
 
     @BeforeAll
     static void startMailServer() {
@@ -46,10 +60,7 @@ class NotificationApiIntegrationTest {
 
     @DynamicPropertySource
     static void mailProps(DynamicPropertyRegistry registry) {
-        registry.add("spring.mail.host", () -> "localhost");
         registry.add("spring.mail.port", () -> greenMail.getSmtp().getPort());
-        registry.add("spring.mail.properties.mail.smtp.auth", () -> "false");
-        registry.add("spring.mail.properties.mail.smtp.starttls.enable", () -> "false");
     }
 
     @BeforeEach
@@ -59,22 +70,24 @@ class NotificationApiIntegrationTest {
 
     @Test
     void send_ShouldSendEmailViaApi() throws Exception {
-        String path = "http://localhost:" + port
-                + "/api/notifications?email=test@test.com&operation=CREATE";
+        String email = "test@test.com";
+        UserOperation operation = UserOperation.CREATE;
+        String path = "http://" + mailHost + ":" + port + contextPath +
+                "/notifications?email=" + email + "&operation=" + operation;
 
         ResponseEntity<Void> response = restTemplate.postForEntity(path, null, Void.class);
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
 
         greenMail.waitForIncomingEmail(100, 1);
 
         MimeMessage[] msgs = greenMail.getReceivedMessages();
+        assertEquals(1, msgs.length);
 
-        assertThat(msgs).hasSize(1);
-        assertThat(msgs[0].getAllRecipients()[0].toString()).isEqualTo("test@test.com");
-        assertThat(msgs[0].getSubject()).isEqualTo("Notification");
+        MimeMessage message = msgs[0];
+        assertEquals(email, message.getAllRecipients()[0].toString());
+        assertEquals(subject, message.getSubject());
 
-        String body = (String) msgs[0].getContent();
-        assertThat(body).contains("успешно создан");
+        String body = (String) message.getContent();
+        assertTrue(body.contains(operation.getMessage()));
     }
 }

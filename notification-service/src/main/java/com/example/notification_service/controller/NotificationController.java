@@ -51,7 +51,7 @@ public class NotificationController {
             responses = {
                     @ApiResponse(responseCode = "200", description = "Notification was sent successfully"),
                     @ApiResponse(responseCode = "400", description = "Invalid input data",
-                            content = @Content(schema = @Schema(ref = "#/components/schemas/ValidationErrorList")))
+                            content = @Content(schema = @Schema(ref = "#/components/schemas/ValidationError")))
             })
     @PostMapping()
     public ResponseEntity<Void> sendNotification(

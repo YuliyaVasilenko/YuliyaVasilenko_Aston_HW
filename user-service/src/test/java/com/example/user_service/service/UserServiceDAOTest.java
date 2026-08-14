@@ -11,14 +11,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 /**
@@ -27,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * Date 18-04-2026
  * Description: integration tests for the UserService class (database interaction)
  */
+@ActiveProfiles("test")
 public class UserServiceDAOTest extends BaseIntegrationTest {
 
     private final String TEST_NAME = "Test Name";
@@ -59,10 +63,10 @@ public class UserServiceDAOTest extends BaseIntegrationTest {
 
         UserDTO result = userService.createUser(userDTO);
 
-        assertThat(result).isNotNull();
-        assertThat(result.getName()).isEqualTo(TEST_NAME);
-        assertThat(result.getEmail()).isEqualTo(TEST_EMAIL);
-        assertThat(result.getAge()).isEqualTo(TEST_AGE);
+        assertNotNull(result);
+        assertEquals(TEST_NAME, result.getName());
+        assertEquals(TEST_EMAIL, result.getEmail());
+        assertEquals(TEST_AGE, result.getAge());
     }
 
     @Test
@@ -71,10 +75,10 @@ public class UserServiceDAOTest extends BaseIntegrationTest {
 
         Optional<UserDTO> foundUser = userService.findUserById(createdUser.getId());
 
-        assertThat(foundUser).isPresent();
-        assertThat(foundUser.get().getName()).isEqualTo(TEST_NAME);
-        assertThat(foundUser.get().getEmail()).isEqualTo(TEST_EMAIL);
-        assertThat(foundUser.get().getAge()).isEqualTo(TEST_AGE);
+        assertTrue(foundUser.isPresent());
+        assertEquals(TEST_NAME, foundUser.get().getName());
+        assertEquals(TEST_EMAIL, foundUser.get().getEmail());
+        assertEquals(TEST_AGE, foundUser.get().getAge());
     }
 
     @ParameterizedTest
@@ -88,20 +92,20 @@ public class UserServiceDAOTest extends BaseIntegrationTest {
     void findAllUsers_shouldFindAllUsers_ReturnListOfUsers() {
         UserDTO userDTO2 = new UserDTO("Test2 Name", "test2@email.com", 35);
         userDTO = userService.createUser(userDTO);
-        userDTO2 = userService.createUser(userDTO2);
+        userService.createUser(userDTO2);
 
         List<UserDTO> result = userService.findAllUsers();
 
-        assertThat(result.size()).isEqualTo(2);
+        assertEquals(2, result.size());
 
         boolean hasUser1 = result.stream()
                 .anyMatch(u -> TEST_NAME.equals(u.getName())
                         && TEST_EMAIL.equals(u.getEmail()) && TEST_AGE == u.getAge());
         boolean hasUser2 = result.stream()
-                .anyMatch(u -> "Test2 Name" .equals(u.getName())
-                        && "test2@email.com" .equals(u.getEmail()) && 35 == u.getAge());
-        assertThat(hasUser1).isTrue();
-        assertThat(hasUser2).isTrue();
+                .anyMatch(u -> "Test2 Name".equals(u.getName())
+                        && "test2@email.com".equals(u.getEmail()) && 35 == u.getAge());
+        assertTrue(hasUser1);
+        assertTrue(hasUser2);
     }
 
     @Test
@@ -114,10 +118,10 @@ public class UserServiceDAOTest extends BaseIntegrationTest {
 
         UserDTO updatedUser = userService.updateUser(userDTO.getId(), userDTO);
 
-        assertThat(updatedUser).isNotNull();
-        assertThat("NewName").isEqualTo(updatedUser.getName());
-        assertThat("new@example.com").isEqualTo(updatedUser.getEmail());
-        assertThat(75).isEqualTo(updatedUser.getAge());
+        assertNotNull(updatedUser);
+        assertEquals("NewName", updatedUser.getName());
+        assertEquals("new@example.com", updatedUser.getEmail());
+        assertEquals(75, updatedUser.getAge());
     }
 
     @Test

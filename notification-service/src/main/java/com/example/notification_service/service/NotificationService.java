@@ -2,6 +2,7 @@ package com.example.notification_service.service;
 
 import com.example.common_models.event.UserEvent;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
@@ -16,6 +17,9 @@ public class NotificationService {
 
     private final EmailService emailService;
 
+    @Value("${app.mail.subject}")
+    private String subject;
+
     /**
      * @ Method Name: processUserEvent
      * @ Description: This is a service class for managing business logic related to notification
@@ -24,7 +28,7 @@ public class NotificationService {
      * @ return     : void
      */
     public void processUserEvent(UserEvent event) {
-        emailService.send(event.email(), "Notification", event.operation().getMessage());
+        emailService.send(event.email(), subject, event.operation().getMessage());
     }
 
 }

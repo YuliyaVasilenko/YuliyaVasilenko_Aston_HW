@@ -2,9 +2,9 @@ package com.example.user_service.controller;
 
 import com.example.common_models.exception.UserNotFoundException;
 import com.example.common_models.handler.GlobalExceptionHandler;
+import com.example.user_service.assembler.UserControllerAssembler;
 import com.example.user_service.dto.UserDTO;
 import com.example.user_service.service.UserService;
-import com.example.user_service.assembler.UserControllerAssembler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

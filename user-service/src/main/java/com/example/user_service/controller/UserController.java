@@ -1,8 +1,8 @@
 package com.example.user_service.controller;
 
+import com.example.user_service.assembler.UserControllerAssembler;
 import com.example.user_service.dto.UserDTO;
 import com.example.user_service.service.UserService;
-import com.example.user_service.assembler.UserControllerAssembler;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;

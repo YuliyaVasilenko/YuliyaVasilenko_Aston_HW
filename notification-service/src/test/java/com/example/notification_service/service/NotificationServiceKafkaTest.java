@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
@@ -24,6 +25,7 @@ import static org.mockito.Mockito.verify;
  * Date 24-04-2026
  * Description: integration tests for the NotificationService class (interaction with Kafka)
  */
+@ActiveProfiles("test")
 public class NotificationServiceKafkaTest extends BaseIntegrationTest {
 
     @Autowired
@@ -41,6 +43,7 @@ public class NotificationServiceKafkaTest extends BaseIntegrationTest {
     @Test
     void consumeUserEvent_WhenMessageReceived_ShouldProcessEvent() {
         UserEvent event = new UserEvent(UserOperation.CREATE, "test@email.com");
+        System.out.println("TOPIC=" + topicName);
 
         kafkaTemplate.send(topicName, event);
 

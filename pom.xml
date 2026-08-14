@@ -15,6 +15,7 @@
     <version>1.0.0</version>
     <name>user-service-project</name>
     <description>user-service-project</description>
+
     <packaging>pom</packaging>
 
     <properties>
@@ -32,6 +33,9 @@
         <module>common-models</module>
         <module>user-service</module>
         <module>notification-service</module>
+        <module>api-gateway</module>
+        <module>config-server</module>
+        <module>discovery-service</module>
     </modules>
 
     <build>
